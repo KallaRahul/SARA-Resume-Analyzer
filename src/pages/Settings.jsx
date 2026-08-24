@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sun, Moon, Check } from "lucide-react";
+import { Sun, Moon, Check, Sparkles, User, KeyRound, Palette } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 function FieldLabel({ children }) {
   return (
-    <label className="text-xs font-medium text-[var(--ink-muted)] mb-1.5 block">
+    <label className="text-xs font-bold text-[var(--ink)] mb-1.5 block uppercase tracking-wider">
       {children}
     </label>
   );
@@ -42,47 +42,52 @@ function ProfileSection() {
   }
 
   return (
-    <Card padding="lg" className="max-w-2xl">
-      <CardHeader>
+    <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl max-w-2xl">
+      <CardHeader className="!mb-4">
         <div>
-          <CardTitle className="text-base">Profile</CardTitle>
+          <CardTitle className="text-base font-bold font-display flex items-center gap-2">
+            <User size={18} className="text-emerald-400" />
+            Candidate Profile
+          </CardTitle>
           <CardDescription className="mt-1">
-            Your display name appears on the dashboard greeting and on your resumes.
+            Your display name and account credentials for AI reports
           </CardDescription>
         </div>
       </CardHeader>
 
       <form onSubmit={onSave} className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-[var(--accent-soft)] text-[var(--accent-strong)] font-semibold flex items-center justify-center text-lg ring-2 ring-[var(--surface)] shrink-0">
-            {(user?.name?.[0] || "?").toUpperCase()}
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-slate-950 font-black flex items-center justify-center text-xl shadow-lg shrink-0">
+            {(user?.name?.[0] || "C").toUpperCase()}
           </div>
-          <div className="text-xs text-[var(--ink-muted)]">
-            Avatar is generated from your initial.
+          <div>
+            <div className="text-sm font-bold text-[var(--ink)]">{user?.name || "Candidate"}</div>
+            <div className="text-xs text-[var(--ink-muted)] mt-0.5">Avatar generated from account initial</div>
           </div>
         </div>
 
         <div>
-          <FieldLabel>Full name</FieldLabel>
+          <FieldLabel>Full Name</FieldLabel>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={80}
             placeholder="Your name"
+            className="h-11 text-sm font-medium"
           />
         </div>
 
         <div>
-          <FieldLabel>Email</FieldLabel>
-          <Input value={user?.email || ""} disabled />
-          <p className="text-[11px] text-[var(--ink-muted)] mt-1.5">
-            Email changes aren&apos;t supported yet.
+          <FieldLabel>Email Address</FieldLabel>
+          <Input value={user?.email || ""} disabled className="h-11 text-sm font-medium" />
+          <p className="text-[11px] text-[var(--ink-muted)] mt-1.5 font-medium">
+            Primary authentication email (managed by workspace admin).
           </p>
         </div>
 
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={!dirty || saving}>
-            {saving ? "Saving..." : "Save changes"}
+          <Button type="submit" variant="accent" disabled={!dirty || saving} className="font-bold">
+            {saving ? "Saving..." : "Save Profile Changes"}
           </Button>
         </div>
       </form>
@@ -97,31 +102,31 @@ function ThemeOption({ value, label, icon: Icon, current, onSelect }) {
       type="button"
       onClick={() => onSelect(value)}
       className={cn(
-        "relative flex-1 flex flex-col items-start gap-3 p-4 rounded-2xl border text-left transition-all",
+        "relative flex-1 flex flex-col items-start gap-3 p-5 rounded-2xl border text-left transition-all duration-200",
         active
-          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-          : "border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)]"
+          ? "border-emerald-500/50 bg-emerald-500/15 shadow-xl scale-[1.02]"
+          : "border-[var(--glass-border)] bg-slate-900/40 hover:bg-slate-900/60"
       )}
     >
       <div
         className={cn(
-          "h-9 w-9 rounded-xl flex items-center justify-center",
+          "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
           active
-            ? "bg-[var(--accent-strong)] text-white"
-            : "bg-[var(--surface-2)] text-[var(--ink-muted)]"
+            ? "bg-emerald-400 text-slate-950 shadow-md"
+            : "bg-white/10 text-[var(--ink-muted)]"
         )}
       >
-        <Icon size={16} />
+        <Icon size={18} />
       </div>
       <div>
-        <div className="text-sm font-semibold text-[var(--ink)]">{label}</div>
-        <div className="text-[11px] text-[var(--ink-muted)] mt-0.5">
-          {value === "light" ? "Soft, airy, sage tones" : "Calm, low-glare night"}
+        <div className="text-sm font-bold text-[var(--ink)]">{label} Mode</div>
+        <div className="text-xs text-[var(--ink-muted)] mt-1 font-medium">
+          {value === "light" ? "Alabaster clean aesthetic" : "Obsidian dark glassmorphism"}
         </div>
       </div>
       {active && (
-        <span className="absolute top-3 right-3 h-5 w-5 rounded-full bg-[var(--accent-strong)] text-white flex items-center justify-center">
-          <Check size={12} />
+        <span className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center font-black shadow-md">
+          <Check size={14} strokeWidth={3} />
         </span>
       )}
     </button>
@@ -131,27 +136,30 @@ function ThemeOption({ value, label, icon: Icon, current, onSelect }) {
 function AppearanceSection() {
   const { theme, setTheme } = useTheme();
   return (
-    <Card padding="lg" className="max-w-2xl">
-      <CardHeader>
+    <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl max-w-2xl">
+      <CardHeader className="!mb-4">
         <div>
-          <CardTitle className="text-base">Appearance</CardTitle>
+          <CardTitle className="text-base font-bold font-display flex items-center gap-2">
+            <Palette size={18} className="text-emerald-400" />
+            Theme & Aesthetic Modes
+          </CardTitle>
           <CardDescription className="mt-1">
-            Pick a theme. Your choice is remembered on this device.
+            Choose your preferred workspace interface mode
           </CardDescription>
         </div>
       </CardHeader>
 
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <ThemeOption
           value="light"
-          label="Light"
+          label="Alabaster Light"
           icon={Sun}
           current={theme}
           onSelect={setTheme}
         />
         <ThemeOption
           value="dark"
-          label="Dark"
+          label="Obsidian Dark"
           icon={Moon}
           current={theme}
           onSelect={setTheme}
@@ -194,61 +202,66 @@ function PasswordSection() {
   }
 
   return (
-    <Card padding="lg" className="max-w-2xl">
-      <CardHeader>
+    <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl max-w-2xl">
+      <CardHeader className="!mb-4">
         <div>
-          <CardTitle className="text-base">Password</CardTitle>
+          <CardTitle className="text-base font-bold font-display flex items-center gap-2">
+            <KeyRound size={18} className="text-emerald-400" />
+            Security & Password
+          </CardTitle>
           <CardDescription className="mt-1">
-            Use at least 8 characters. Mix letters, numbers, and a symbol for a stronger
-            password.
+            Update your account password (minimum 8 characters)
           </CardDescription>
         </div>
       </CardHeader>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <FieldLabel>Current password</FieldLabel>
+          <FieldLabel>Current Password</FieldLabel>
           <Input
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrent(e.target.value)}
             autoComplete="current-password"
+            className="h-11"
           />
         </div>
 
         <div>
-          <FieldLabel>New password</FieldLabel>
+          <FieldLabel>New Password</FieldLabel>
           <Input
             type="password"
             value={newPassword}
             onChange={(e) => setNext(e.target.value)}
             autoComplete="new-password"
+            className="h-11"
           />
           {newTooShort && (
-            <p className="text-[11px] text-[var(--danger)] mt-1.5">
-              Needs to be at least 8 characters.
+            <p className="text-xs font-semibold text-rose-400 mt-1.5">
+              Password must be at least 8 characters.
             </p>
           )}
         </div>
 
         <div>
-          <FieldLabel>Confirm new password</FieldLabel>
+          <FieldLabel>Confirm New Password</FieldLabel>
           <Input
             type="password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             autoComplete="new-password"
+            className="h-11"
           />
           {mismatch && (
-            <p className="text-[11px] text-[var(--danger)] mt-1.5">
-              Passwords don&apos;t match.
+            <p className="text-xs font-semibold text-rose-400 mt-1.5">
+              Passwords do not match.
             </p>
           )}
         </div>
 
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={!canSubmit}>
-            {saving ? "Updating..." : "Update password"}
+          <Button type="submit" variant="accent" disabled={!canSubmit} className="font-bold">
+            {saving ? "Updating..." : "Update Security Password"}
           </Button>
         </div>
       </form>
@@ -262,18 +275,18 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Settings"
-        description="Manage your account, look & feel, and password."
+        title="Account Settings"
+        description="Manage candidate profile, theme appearance, and password security."
       />
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="password">Password</TabsTrigger>
+        <TabsList className="mb-4">
+          <TabsTrigger value="profile">Profile Details</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance Mode</TabsTrigger>
+          <TabsTrigger value="password">Security & Auth</TabsTrigger>
         </TabsList>
 
-        <div className="mt-6">
+        <div className="mt-4">
           <TabsContent value="profile">
             <ProfileSection />
           </TabsContent>

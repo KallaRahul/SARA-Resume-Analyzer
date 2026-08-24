@@ -1,21 +1,21 @@
-import { Check, X } from "lucide-react";
+import { Check, X, KeyRound, Sparkles } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 
 function Chip({ children, tone }) {
   if (tone === "present") {
     return (
-      <span className="inline-flex items-center gap-1.5 h-7 pl-1.5 pr-3 rounded-full bg-[var(--accent-soft)] text-[var(--accent-strong)] text-[12px] font-semibold transition-transform hover:-translate-y-px">
-        <span className="h-4 w-4 rounded-full bg-[var(--accent-strong)] text-white flex items-center justify-center">
-          <Check size={9} strokeWidth={3.5} />
+      <span className="inline-flex items-center gap-1.5 h-8 pl-2 pr-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold transition-all hover:scale-105 shadow-sm">
+        <span className="h-4 w-4 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black">
+          <Check size={10} strokeWidth={4} />
         </span>
         {children}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 h-7 pl-1.5 pr-3 rounded-full bg-[#F8E3E0]/70 text-[var(--danger)] text-[12px] font-semibold transition-transform hover:-translate-y-px">
-      <span className="h-4 w-4 rounded-full bg-[var(--danger)] text-white flex items-center justify-center">
-        <X size={9} strokeWidth={3.5} />
+    <span className="inline-flex items-center gap-1.5 h-8 pl-2 pr-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold transition-all hover:scale-105 shadow-sm">
+      <span className="h-4 w-4 rounded-full bg-rose-500 text-slate-950 flex items-center justify-center font-black">
+        <X size={10} strokeWidth={4} />
       </span>
       {children}
     </span>
@@ -25,18 +25,18 @@ function Chip({ children, tone }) {
 function SectionHeader({ tone, label, count }) {
   const isPresent = tone === "present";
   return (
-    <div className="flex items-center gap-2.5 mb-3">
+    <div className="flex items-center gap-3 mb-3.5">
       <span
         className={
           isPresent
-            ? "h-6 w-6 rounded-lg bg-[var(--accent-soft)] text-[var(--accent-strong)] flex items-center justify-center"
-            : "h-6 w-6 rounded-lg bg-[#F8E3E0] text-[var(--danger)] flex items-center justify-center"
+            ? "h-7 w-7 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center"
+            : "h-7 w-7 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center"
         }
       >
-        {isPresent ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
+        {isPresent ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}
       </span>
-      <div className="text-[12px] font-semibold text-[var(--ink)]">{label}</div>
-      <span className="text-[11px] text-[var(--ink-muted)] tabular-nums">
+      <div className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] font-display">{label} Keywords</div>
+      <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-xs font-mono font-bold text-emerald-400">
         {count}
       </span>
       <div className="flex-1 h-px bg-[var(--border)]" />
@@ -49,109 +49,59 @@ export function KeywordChips({ present = [], missing = [] }) {
   const pct = total ? Math.round((present.length / total) * 100) : 0;
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl">
+      <CardHeader className="!mb-4">
         <div>
-          <CardTitle className="text-base">Keywords</CardTitle>
+          <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
+            <KeyRound size={18} className="text-emerald-400" />
+            ATS Keyword Coverage
+          </CardTitle>
           <CardDescription className="mt-1">
-            What ATS sees vs what it expects
+            Exact term match analysis against targeted job descriptions
           </CardDescription>
         </div>
       </CardHeader>
 
-      {/* Match-rate hero */}
-      <div
-        className="relative rounded-2xl border border-[var(--border)] p-5 mb-5 overflow-hidden"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--accent-soft) 0%, var(--surface-2) 70%, var(--surface) 100%)",
-        }}
-      >
-        {/* Decorative dashed sage arc, top right */}
-        <svg
-          className="absolute -top-6 -right-6 pointer-events-none opacity-50"
-          width="140"
-          height="140"
-          viewBox="0 0 140 140"
-          aria-hidden
-        >
-          <circle
-            cx="70"
-            cy="70"
-            r="60"
-            fill="none"
-            stroke="var(--accent)"
-            strokeOpacity="0.35"
-            strokeWidth="1"
-            strokeDasharray="3 6"
-          />
-        </svg>
-
-        <div className="relative flex items-end justify-between gap-4">
+      {/* Match-rate Hero Panel */}
+      <div className="relative rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 mb-6 overflow-hidden backdrop-blur-md">
+        <div className="relative flex items-center justify-between gap-4">
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-semibold text-[var(--ink-muted)]">
-              Match rate
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--ink-muted)]">
+              ATS Keyword Density
             </div>
-            <div className="flex items-baseline gap-1.5 mt-1.5">
-              <span
-                className="font-display tabular-nums text-[44px] font-semibold leading-none tracking-tight"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, #B6CFC0 0%, var(--accent) 45%, var(--accent-strong) 100%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="font-display tabular-nums text-4xl font-extrabold text-gradient-emerald">
                 {present.length}
               </span>
-              <span className="text-[var(--ink-muted)] text-base font-medium tabular-nums">
-                / {total}
-              </span>
-              <span className="text-[11px] text-[var(--ink-muted)] ml-1">
-                keywords
+              <span className="text-[var(--ink-muted)] text-sm font-semibold">
+                / {total} matched terms
               </span>
             </div>
           </div>
+
           <div className="text-right">
-            <div
-              className="font-display tabular-nums text-[26px] font-semibold leading-none tracking-tight"
-              style={{
-                backgroundImage:
-                  "linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                color: "transparent",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
+            <div className="font-display tabular-nums text-3xl font-extrabold text-emerald-400">
               {pct}%
             </div>
-            <div className="text-[10px] uppercase tracking-wider text-[var(--ink-muted)] mt-1">
-              coverage
+            <div className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--ink-muted)] mt-1">
+              Match Ratio
             </div>
           </div>
         </div>
 
-        <div className="relative mt-4 h-1.5 w-full rounded-full bg-[var(--surface)]/60 overflow-hidden">
+        <div className="relative mt-4 h-2 w-full rounded-full bg-slate-900 overflow-hidden border border-white/5">
           <div
-            className="h-full rounded-full transition-[width] duration-700 ease-out"
-            style={{
-              width: `${pct}%`,
-              background:
-                "linear-gradient(90deg, var(--accent) 0%, var(--accent-strong) 100%)",
-            }}
+            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all duration-700 ease-out shadow-md"
+            style={{ width: `${pct}%` }}
           />
         </div>
       </div>
 
-      {/* Present */}
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div>
-          <SectionHeader tone="present" label="Present" count={present.length} />
+          <SectionHeader tone="present" label="Verified Present" count={present.length} />
           {present.length ? (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {present.map((k) => (
                 <Chip key={k} tone="present">
                   {k}
@@ -159,14 +109,14 @@ export function KeywordChips({ present = [], missing = [] }) {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[var(--ink-muted)] pl-8">None detected.</p>
+            <p className="text-xs text-[var(--ink-muted)] pl-10 italic">No keywords detected yet.</p>
           )}
         </div>
 
         <div>
-          <SectionHeader tone="missing" label="Missing" count={missing.length} />
+          <SectionHeader tone="missing" label="Missing & Recommended" count={missing.length} />
           {missing.length ? (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {missing.map((k) => (
                 <Chip key={k} tone="missing">
                   {k}
@@ -174,8 +124,9 @@ export function KeywordChips({ present = [], missing = [] }) {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[var(--ink-muted)] pl-8">
-              You&apos;re hitting the major keywords. Nice.
+            <p className="text-xs text-emerald-400 pl-10 font-bold flex items-center gap-1">
+              <Sparkles size={14} />
+              Outstanding! Your resume covers all critical ATS target keywords.
             </p>
           )}
         </div>

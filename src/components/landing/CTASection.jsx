@@ -1,108 +1,85 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, ShieldCheck } from "lucide-react";
-import { DarkPanel } from "./DarkPanel";
+import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 
 export function CTASection() {
   return (
     <section
-      className="px-3 sm:px-6 mt-28 sm:mt-36"
-      style={{ maxWidth: 1240, marginLeft: "auto", marginRight: "auto" }}
+      className="px-4 sm:px-8 mt-28 sm:mt-36"
+      style={{ maxWidth: 1280, marginLeft: "auto", marginRight: "auto" }}
     >
-      <DarkPanel className="px-6 sm:px-12 lg:px-20 py-16 sm:py-24 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 backdrop-blur-md"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-[#8FB39C]" />
-          <span className="text-[11px] tracking-wide text-white/85 uppercase font-semibold">
-            Free forever for your first 3 analyses
-          </span>
-        </motion.div>
+      <div className="relative rounded-[40px] bg-slate-950 border border-emerald-500/30 p-8 sm:p-16 text-center shadow-2xl overflow-hidden">
+        {/* Background ambient lighting */}
+        <div className="bg-ambient-glow -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-emerald-500/20" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
 
-        <motion.h2
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.05 }}
-          className="font-display text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.04] tracking-tight text-white mt-6 max-w-3xl mx-auto"
-        >
-          Stop guessing what
-          <br />
-          recruiters{" "}
-          <span
-            style={{
-              backgroundImage:
-                "linear-gradient(120deg, #B6CFC0 0%, #8FB39C 50%, #5B7C6A 100%)",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              color: "transparent",
-            }}
+        <div className="relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold uppercase tracking-widest"
           >
-            actually see.
-          </span>
-        </motion.h2>
+            <Sparkles size={14} className="animate-pulse" />
+            Instant AI Resume Scoring Engine
+          </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-white/65 text-base sm:text-lg mt-5 max-w-xl mx-auto leading-relaxed"
-        >
-          Upload your resume now. Get your ATS score, fixable issues, and AI rewrites
-          in under 15 seconds.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          <Link
-            to="/register"
-            className="group relative inline-flex items-center gap-2 h-12 px-6 rounded-full font-semibold text-[14px] text-white shadow-[0_10px_30px_-8px_rgba(143,179,156,0.5)] hover:shadow-[0_14px_36px_-8px_rgba(143,179,156,0.7)] active:scale-[0.98] transition-all"
-            style={{
-              background:
-                "linear-gradient(135deg, #8FB39C 0%, #5B7C6A 55%, #2F4A3A 100%)",
-            }}
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.08 }}
+            className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight text-white mt-6 max-w-3xl mx-auto"
           >
-            <span
-              className="absolute inset-0 rounded-full pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 50%)",
-              }}
-            />
-            <span className="relative">Start free ATS analysis</span>
-            <ArrowRight size={15} className="relative group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+            Stop guessing what recruiters <span className="text-gradient-emerald">actually see.</span>
+          </motion.h2>
 
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 h-12 px-5 rounded-full font-medium text-[14px] text-white bg-white/8 border border-white/12 backdrop-blur-md hover:bg-white/12 transition-colors"
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.14 }}
+            className="text-slate-300 text-base sm:text-lg mt-5 max-w-xl mx-auto leading-relaxed"
           >
-            I already have an account
-          </Link>
-        </motion.div>
+            Upload your resume now. Get an instant ATS compatibility score, fixable issues, and AI bullet rewrites in seconds.
+          </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          className="mt-6 inline-flex items-center gap-1.5 text-[12px] text-white/50"
-        >
-          <ShieldCheck size={13} className="text-[#8FB39C]" />
-          No credit card · We never store your resume PDF
-        </motion.div>
-      </DarkPanel>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link
+              to="/dashboard"
+              className="group relative inline-flex items-center gap-3 h-14 px-8 rounded-2xl font-extrabold text-base text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all btn-shine"
+            >
+              Analyze Your Resume Free
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 h-14 px-7 rounded-2xl font-bold text-sm text-slate-200 glass-panel border border-white/10 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all"
+            >
+              I already have an account
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.28 }}
+            className="mt-8 inline-flex items-center gap-2 text-xs text-slate-400 font-semibold"
+          >
+            <ShieldCheck size={16} className="text-emerald-400" />
+            No credit card required · Free ATS analysis instant output
+          </motion.div>
+        </div>
+      </div>
     </section>
   );
 }

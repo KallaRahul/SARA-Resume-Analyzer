@@ -3,30 +3,37 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:opacity-50 disabled:pointer-events-none select-none",
+  "inline-flex items-center justify-center gap-2 font-medium whitespace-nowrap transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer active:scale-[0.97]",
   {
     variants: {
       variant: {
         primary:
-          "bg-[var(--ink)] text-[var(--bg)] hover:opacity-90 active:scale-[0.98]",
+          "bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 btn-shine",
         accent:
-          "bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)] active:scale-[0.98]",
+          "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-semibold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 btn-shine",
+        dark:
+          "bg-slate-900 hover:bg-slate-800 text-slate-100 border border-slate-700/80 shadow-md",
+        glass:
+          "glass-panel text-[var(--ink)] hover:bg-emerald-500/10 hover:border-emerald-500/40 shadow-sm",
         outline:
-          "bg-[var(--surface)] border border-[var(--border)] text-[var(--ink)] hover:bg-[var(--surface-2)]",
+          "bg-transparent border border-[var(--border)] text-[var(--ink)] hover:border-emerald-500/40 hover:bg-emerald-500/5 hover:text-emerald-500",
         ghost:
-          "bg-transparent text-[var(--ink)] hover:bg-[var(--surface-2)]",
+          "bg-transparent text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-white/5",
         soft:
-          "bg-[var(--accent-soft)] text-[var(--accent-strong)] hover:bg-[var(--accent-soft)]/80",
+          "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 font-medium",
+        danger:
+          "bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/20",
       },
       size: {
-        sm: "h-8 px-3 text-xs rounded-full",
-        md: "h-10 px-4 text-sm rounded-full",
-        lg: "h-12 px-6 text-sm rounded-full",
-        icon: "h-10 w-10 rounded-full",
-        iconSm: "h-8 w-8 rounded-full",
+        sm: "h-8 px-3 text-xs rounded-xl",
+        md: "h-10 px-4 text-sm rounded-xl",
+        lg: "h-12 px-6 text-base rounded-2xl font-semibold",
+        xl: "h-14 px-8 text-lg rounded-2xl font-bold tracking-wide",
+        icon: "h-10 w-10 rounded-xl",
+        iconSm: "h-8 w-8 rounded-lg",
       },
     },
-    defaultVariants: { variant: "primary", size: "md" },
+    defaultVariants: { variant: "accent", size: "md" },
   }
 );
 

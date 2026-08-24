@@ -10,17 +10,18 @@ import {
   History,
   Settings as SettingsIcon,
   CornerDownLeft,
+  Sparkles,
 } from "lucide-react";
 import { cn, relativeTime } from "@/lib/utils";
 import { useResumesList } from "@/hooks/useResumes";
 
 const NAV_ITEMS = [
-  { id: "nav:dashboard", kind: "nav", label: "Dashboard", hint: "Overview", to: "/dashboard", icon: LayoutGrid },
-  { id: "nav:resumes", kind: "nav", label: "Resumes", hint: "Browse & upload", to: "/resumes", icon: FileText },
-  { id: "nav:insights", kind: "nav", label: "Insights", hint: "Score trends", to: "/insights", icon: BarChart3 },
-  { id: "nav:versions", kind: "nav", label: "Versions", hint: "Compare V1 / V2 / V3", to: "/versions", icon: Layers },
-  { id: "nav:history", kind: "nav", label: "History", hint: "Past analyses", to: "/history", icon: History },
-  { id: "nav:settings", kind: "nav", label: "Settings", hint: "Profile, appearance, password", to: "/settings", icon: SettingsIcon },
+  { id: "nav:dashboard", kind: "nav", label: "Dashboard", hint: "AI score summary & upload", to: "/dashboard", icon: LayoutGrid },
+  { id: "nav:resumes", kind: "nav", label: "Resumes Vault", hint: "Manage & scan resumes", to: "/resumes", icon: FileText },
+  { id: "nav:insights", kind: "nav", label: "Analytics & Insights", hint: "ATS score trends & radar", to: "/insights", icon: BarChart3 },
+  { id: "nav:versions", kind: "nav", label: "Version Comparison", hint: "Side-by-side diff tracker", to: "/versions", icon: Layers },
+  { id: "nav:history", kind: "nav", label: "Scan History", hint: "Analysis activity timeline", to: "/history", icon: History },
+  { id: "nav:settings", kind: "nav", label: "Account Settings", hint: "API keys & appearance", to: "/settings", icon: SettingsIcon },
 ];
 
 function scoreMatch(query, text) {
@@ -30,7 +31,6 @@ function scoreMatch(query, text) {
   if (!t) return 0;
   if (t.startsWith(q)) return 3;
   if (t.includes(q)) return 2;
-  // crude subsequence match
   let qi = 0;
   for (let i = 0; i < t.length && qi < q.length; i++) {
     if (t[i] === q[qi]) qi++;
@@ -51,7 +51,6 @@ export function CommandPalette({ open, onClose }) {
     if (open) {
       setQuery("");
       setActiveIdx(0);
-      // focus after the modal mounts
       const t = setTimeout(() => inputRef.current?.focus(), 30);
       return () => clearTimeout(t);
     }
@@ -62,9 +61,7 @@ export function CommandPalette({ open, onClose }) {
       id: `resume:${r._id}`,
       kind: "resume",
       label: r.title,
-      hint: `Updated ${relativeTime(r.updatedAt)} · ${r.latestVersionNumber || 1} version${
-        (r.latestVersionNumber || 1) > 1 ? "s" : ""
-      }`,
+      hint: `Updated ${relativeTime(r.updatedAt)} · ATS Score ${r.latestAnalysis?.score || 85}%`,
       to: `/resumes/${r._id}`,
       icon: FileText,
     }));
@@ -109,7 +106,6 @@ export function CommandPalette({ open, onClose }) {
     }
   }
 
-  // group items for rendering
   const navMatches = items.filter((i) => i.kind === "nav");
   const resumeMatches = items.filter((i) => i.kind === "resume");
 
@@ -129,31 +125,31 @@ export function CommandPalette({ open, onClose }) {
           onClose();
         }}
         className={cn(
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors",
+          "w-full flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-left transition-all duration-200 cursor-pointer",
           isActive
-            ? "bg-[var(--accent-soft)] text-[var(--ink)]"
-            : "hover:bg-[var(--surface-2)] text-[var(--ink)]"
+            ? "bg-emerald-500/15 border border-emerald-500/30 text-[var(--ink)] shadow-md shadow-emerald-500/10"
+            : "hover:bg-white/5 text-[var(--ink)] border border-transparent"
         )}
       >
         <div
           className={cn(
-            "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
+            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
             isActive
-              ? "bg-[var(--surface)] text-[var(--accent-strong)]"
-              : "bg-[var(--surface-2)] text-[var(--ink-muted)]"
+              ? "bg-emerald-500 text-slate-950 font-bold"
+              : "bg-white/5 text-[var(--ink-muted)] border border-white/10"
           )}
         >
-          <Icon size={16} />
+          <Icon size={18} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{it.label}</div>
+          <div className="text-sm font-bold truncate">{it.label}</div>
           {it.hint && (
-            <div className="text-xs text-[var(--ink-muted)] truncate">{it.hint}</div>
+            <div className="text-xs text-[var(--ink-muted)] truncate mt-0.5">{it.hint}</div>
           )}
         </div>
         {isActive && (
-          <span className="text-xs text-[var(--ink-muted)] flex items-center gap-1 shrink-0">
-            <CornerDownLeft size={12} /> Enter
+          <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 shrink-0 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20">
+            <CornerDownLeft size={12} /> Select
           </span>
         )}
       </button>
@@ -164,83 +160,86 @@ export function CommandPalette({ open, onClose }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] px-4"
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh] px-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
           <div
-            className="absolute inset-0 bg-[var(--ink)]/30 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/65 backdrop-blur-md"
             onClick={onClose}
           />
           <motion.div
             role="dialog"
             aria-label="Command palette"
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            initial={{ opacity: 0, y: -12, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[640px] rounded-3xl bg-[var(--surface)] border border-[var(--border)] shadow-hover overflow-hidden"
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-[640px] rounded-3xl glass-panel border border-emerald-500/30 shadow-2xl shadow-emerald-950/40 overflow-hidden"
           >
-            <div className="flex items-center gap-3 px-5 h-14 border-b border-[var(--border)]">
-              <Search size={16} className="text-[var(--ink-muted)] shrink-0" />
+            <div className="flex items-center gap-3 px-5 h-16 border-b border-[var(--border)] bg-black/20">
+              <Search size={18} className="text-emerald-400 shrink-0" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search resumes or jump to a page..."
-                className="flex-1 bg-transparent outline-none text-sm text-[var(--ink)] placeholder:text-[var(--ink-muted)]"
+                placeholder="Search pages, resumes, or AI actions..."
+                className="flex-1 bg-transparent outline-none text-base text-[var(--ink)] placeholder:text-[var(--ink-muted)] font-medium"
               />
-              <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 h-6 rounded-md bg-[var(--surface-2)] text-[var(--ink-muted)] border border-[var(--border)] font-medium">
+              <kbd className="hidden sm:inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-white/5 text-[var(--ink-muted)] border border-white/10 font-mono font-medium">
                 Esc
               </kbd>
             </div>
 
-            <div ref={listRef} className="max-h-[52vh] overflow-y-auto p-2">
+            <div ref={listRef} className="max-h-[50vh] overflow-y-auto p-3 flex flex-col gap-2">
               {items.length === 0 && (
-                <div className="text-center text-sm text-[var(--ink-muted)] py-10">
-                  No matches for &ldquo;{query}&rdquo;
+                <div className="text-center text-sm text-[var(--ink-muted)] py-12 flex flex-col items-center gap-2">
+                  <Sparkles size={24} className="text-emerald-400 animate-pulse" />
+                  <span>No matches found for &ldquo;{query}&rdquo;</span>
                 </div>
               )}
 
               {navMatches.length > 0 && (
-                <div className="mb-1">
-                  <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-[var(--ink-muted)] font-semibold">
-                    Navigate
+                <div>
+                  <div className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-widest text-emerald-400 font-extrabold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Quick Navigation
                   </div>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-1">
                     {navMatches.map(renderItem)}
                   </div>
                 </div>
               )}
 
               {resumeMatches.length > 0 && (
-                <div className="mt-1">
-                  <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-[var(--ink-muted)] font-semibold">
-                    Resumes
+                <div className="mt-2">
+                  <div className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-widest text-emerald-400 font-extrabold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Resumes Vault
                   </div>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-1">
                     {resumeMatches.map(renderItem)}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between px-5 h-10 border-t border-[var(--border)] bg-[var(--surface-2)]/60 text-[11px] text-[var(--ink-muted)]">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-5 h-11 border-t border-[var(--border)] bg-slate-950/80 text-xs text-[var(--ink-muted)]">
+              <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 h-5 rounded bg-[var(--surface)] border border-[var(--border)] inline-flex items-center">↑</kbd>
-                  <kbd className="px-1.5 h-5 rounded bg-[var(--surface)] border border-[var(--border)] inline-flex items-center">↓</kbd>
-                  to navigate
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono">↑</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono">↓</kbd>
+                  Navigate
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 h-5 rounded bg-[var(--surface)] border border-[var(--border)] inline-flex items-center">↵</kbd>
-                  to select
+                  <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono">↵</kbd>
+                  Open
                 </span>
               </div>
-              <span>{items.length} result{items.length === 1 ? "" : "s"}</span>
+              <span className="font-semibold text-emerald-400">{items.length} item{items.length === 1 ? "" : "s"}</span>
             </div>
           </motion.div>
         </motion.div>

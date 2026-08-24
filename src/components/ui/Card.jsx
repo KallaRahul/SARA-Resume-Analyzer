@@ -3,24 +3,29 @@ import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "bg-[var(--surface)] border border-[var(--border)] shadow-card transition-all duration-300",
+  "glass-panel transition-all duration-300 relative overflow-hidden",
   {
     variants: {
       variant: {
-        default: "hover:shadow-hover",
+        default: "glass-card",
+        interactive: "glass-card-interactive cursor-pointer",
         accent:
-          "bg-[var(--accent-hero)] text-white border-transparent bg-[image:linear-gradient(135deg,var(--accent-hero-2)_0%,var(--accent-hero)_55%,var(--accent-hero)_100%)]",
-        flat: "",
+          "bg-gradient-to-br from-emerald-950/90 via-slate-900/90 to-teal-950/90 text-white border border-emerald-500/30 shadow-2xl shadow-emerald-500/10 hover:border-emerald-500/50",
+        hero:
+          "bg-gradient-to-br from-slate-900/95 via-emerald-950/80 to-slate-950/95 border border-emerald-500/30 shadow-2xl shadow-emerald-900/20 backdrop-blur-2xl",
+        flat: "bg-[var(--surface-2)] border border-[var(--border)] rounded-2xl",
+        glow: "bg-[var(--glass-bg)] border border-emerald-500/40 shadow-xl shadow-emerald-500/10 hover:shadow-emerald-500/20",
       },
       radius: {
         md: "rounded-2xl",
         lg: "rounded-3xl",
+        xl: "rounded-[1.75rem]",
       },
       padding: {
         none: "",
         sm: "p-4",
-        md: "p-5",
-        lg: "p-6",
+        md: "p-6",
+        lg: "p-8",
       },
     },
     defaultVariants: { variant: "default", radius: "md", padding: "md" },
@@ -45,7 +50,7 @@ export const CardHeader = ({ className, ...props }) => (
 export const CardTitle = ({ className, ...props }) => (
   <h3
     className={cn(
-      "text-sm font-semibold text-[var(--ink)] tracking-tight",
+      "text-base font-bold text-[var(--ink)] tracking-tight font-display",
       className
     )}
     {...props}
@@ -53,9 +58,13 @@ export const CardTitle = ({ className, ...props }) => (
 );
 
 export const CardDescription = ({ className, ...props }) => (
-  <p className={cn("text-xs text-[var(--ink-muted)]", className)} {...props} />
+  <p className={cn("text-xs text-[var(--ink-muted)] leading-relaxed mt-0.5", className)} {...props} />
 );
 
 export const CardContent = ({ className, ...props }) => (
   <div className={cn("", className)} {...props} />
+);
+
+export const CardFooter = ({ className, ...props }) => (
+  <div className={cn("mt-4 pt-4 border-t border-[var(--border)] flex items-center justify-between", className)} {...props} />
 );

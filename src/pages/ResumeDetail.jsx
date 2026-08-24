@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Sparkles, ArrowLeft, Loader2, FileText, Download } from "lucide-react";
+import { Sparkles, ArrowLeft, Loader2, FileText, Download, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -59,9 +59,7 @@ export default function ResumeDetail() {
         versionId: activeVersionId,
         targetRole: targetRole.trim() || undefined,
       });
-    } catch {
-      /* surfaced below */
-    }
+    } catch {}
   }
 
   async function runApplyRewrites(rewriteIds) {
@@ -75,20 +73,14 @@ export default function ResumeDetail() {
         const newVersionId = res.version._id;
         setActiveVersionId(newVersionId);
         setTab("score");
-        // Auto-analyze the new version with the same target role so the user
-        // immediately sees whether their rewrites moved the score.
         try {
           await analyze.mutateAsync({
             versionId: newVersionId,
             targetRole: targetRole.trim() || undefined,
           });
-        } catch {
-          /* surfaced via analyze.error inside the Run analysis card */
-        }
+        } catch {}
       }
-    } catch {
-      /* surfaced inside the card */
-    }
+    } catch {}
   }
 
   if (isLoading) {
@@ -104,11 +96,11 @@ export default function ResumeDetail() {
     return (
       <EmptyState
         icon={FileText}
-        title="Resume not found"
+        title="Resume file not found"
         description={error.message}
         action={
           <Button variant="outline" onClick={() => nav("/resumes")}>
-            Back to resumes
+            Return to Resumes Vault
           </Button>
         }
       />
@@ -118,35 +110,38 @@ export default function ResumeDetail() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={resume?.title || "Resume"}
+        title={resume?.title || "Resume Detail"}
         description={
           resume
-            ? `Updated ${relativeTime(resume.updatedAt)} · ${versions.length} version${
+            ? `Last modified ${relativeTime(resume.updatedAt)} · ${versions.length} version${
                 versions.length > 1 ? "s" : ""
-              }`
+              } saved`
             : ""
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button variant="ghost" onClick={() => nav("/resumes")}>
-              <ArrowLeft size={14} /> All resumes
+              <ArrowLeft size={16} /> Resumes Vault
             </Button>
             <Button
-              variant="outline"
+              variant="accent"
               onClick={() => nav(`/resumes/${id}/export`)}
             >
-              <Download size={14} /> Export PDF
+              <Download size={16} /> Export PDF & Formats
             </Button>
           </div>
         }
       />
 
-      <Card>
-        <div className="flex flex-wrap items-end gap-4 justify-between">
+      <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
           <div className="space-y-2">
-            <CardTitle className="text-base">Run analysis</CardTitle>
+            <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
+              <Sparkles size={18} className="text-emerald-400" />
+              AI Analysis Launcher
+            </CardTitle>
             <CardDescription>
-              Score this version with Gemini and get issues, strengths, and rewrites.
+              Execute multi-point ATS audit with Gemini 2.0 AI Engine
             </CardDescription>
             <VersionSwitcher
               versions={versions}
@@ -154,33 +149,35 @@ export default function ResumeDetail() {
               onChange={setActiveVersionId}
             />
           </div>
-          <div className="flex items-center gap-3 flex-1 min-w-[280px] max-w-[520px]">
+
+          <div className="flex items-center gap-3 w-full md:w-auto min-w-[280px] max-w-[560px]">
             <Input
-              placeholder="Target role (optional, e.g. Senior Frontend Engineer)"
+              placeholder="Target Role / JD (e.g. Senior Staff Frontend Engineer)"
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value)}
+              className="h-11"
             />
             <Button
               variant="accent"
               size="lg"
               onClick={runAnalyze}
               disabled={analyze.isPending || !activeVersionId}
-              className="shrink-0"
+              className="shrink-0 font-bold"
             >
               {analyze.isPending ? (
                 <>
-                  <Loader2 size={14} className="animate-spin" /> Analyzing…
+                  <Loader2 size={16} className="animate-spin" /> Analyzing...
                 </>
               ) : (
                 <>
-                  <Sparkles size={14} /> Analyze
+                  <Sparkles size={16} /> Run Scan
                 </>
               )}
             </Button>
           </div>
         </div>
         {analyze.error && (
-          <div className="mt-4 text-xs text-[var(--danger)] bg-[#F8E3E0] rounded-xl px-3 py-2">
+          <div className="mt-4 text-xs font-semibold text-rose-400 bg-rose-500/15 border border-rose-500/30 rounded-xl p-3">
             {analyze.error.message}
           </div>
         )}
@@ -189,8 +186,8 @@ export default function ResumeDetail() {
       {!analysis && !analysisQuery.isLoading && (
         <EmptyState
           icon={Sparkles}
-          title="No analysis yet for this version"
-          description="Click Analyze above to score this resume version with AI."
+          title="No AI Analysis Generated Yet"
+          description="Click 'Run Scan' above to compute ATS match, bullet rewrites, and keyword gaps."
         />
       )}
 
@@ -203,7 +200,7 @@ export default function ResumeDetail() {
 
       {analysis && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-4">
               <AtsGauge score={analysis.atsScore} delta={0} />
             </div>
@@ -211,35 +208,37 @@ export default function ResumeDetail() {
               <ScoreBreakdown breakdown={analysis.scoreBreakdown} />
             </div>
             <div className="lg:col-span-3">
-              <Card className="h-full flex flex-col">
-                <CardHeader>
-                  <div>
-                    <CardTitle className="text-base">Verdict</CardTitle>
-                    <CardDescription className="mt-1">
-                      AI overall summary
-                    </CardDescription>
-                  </div>
-                  <Badge tone="accent">{analysis.model}</Badge>
-                </CardHeader>
-                <p className="text-sm text-[var(--ink)] leading-relaxed">
-                  {analysis.summary}
-                </p>
+              <Card className="glass-card h-full p-6 border border-[var(--glass-border)] shadow-xl flex flex-col justify-between">
+                <div>
+                  <CardHeader className="p-0 mb-3">
+                    <CardTitle className="text-base font-bold font-display flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      AI Recruiter Verdict
+                    </CardTitle>
+                    <Badge tone="accent" className="font-mono text-[10px] uppercase font-bold mt-1">
+                      {analysis.model || "Gemini-Pro Engine"}
+                    </Badge>
+                  </CardHeader>
+                  <p className="text-xs text-[var(--ink)] leading-relaxed font-medium">
+                    {analysis.summary}
+                  </p>
+                </div>
               </Card>
             </div>
           </div>
 
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList>
-              <TabsTrigger value="score">Issues</TabsTrigger>
-              <TabsTrigger value="strengths">Strengths</TabsTrigger>
-              <TabsTrigger value="keywords">Keywords</TabsTrigger>
-              <TabsTrigger value="rewrites">Rewrites</TabsTrigger>
+            <TabsList className="mb-4">
+              <TabsTrigger value="score">Critical Issues</TabsTrigger>
+              <TabsTrigger value="strengths">Key Strengths</TabsTrigger>
+              <TabsTrigger value="keywords">Keyword Gaps</TabsTrigger>
+              <TabsTrigger value="rewrites">Impact Rewrites</TabsTrigger>
               {versions.length >= 2 && (
-                <TabsTrigger value="diff">Diff</TabsTrigger>
+                <TabsTrigger value="diff">Diff Tracker</TabsTrigger>
               )}
             </TabsList>
 
-            <div className="mt-5">
+            <div className="mt-4">
               <TabsContent value="score">
                 <IssuesList issues={analysis.issues} />
               </TabsContent>
@@ -269,12 +268,14 @@ export default function ResumeDetail() {
       )}
 
       {activeVersion && (
-        <Card>
+        <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl">
           <CardHeader>
             <div>
-              <CardTitle className="text-base">Parsed Sections ({activeVersion.label})</CardTitle>
+              <CardTitle className="text-base font-bold font-display">
+                Extracted Document Sections ({activeVersion.label})
+              </CardTitle>
               <CardDescription className="mt-1">
-                Quick preview of what we extracted from the PDF
+                Parsed content structure extracted from your document
               </CardDescription>
             </div>
           </CardHeader>
@@ -287,7 +288,7 @@ export default function ResumeDetail() {
 
 function PreviewLabel({ children }) {
   return (
-    <div className="text-[10px] uppercase tracking-wide text-[var(--ink-muted)] mb-1.5">
+    <div className="text-[10px] uppercase tracking-wider text-emerald-400 font-extrabold mb-2">
       {children}
     </div>
   );
@@ -298,49 +299,46 @@ function ParsedSectionsPreview({ version }) {
   const b = s.basics || {};
 
   return (
-    <div className="space-y-4 text-sm">
+    <div className="space-y-5 text-sm">
       {(b.name || b.title || b.email) && (
         <div className="pb-4 border-b border-[var(--border)]">
           {b.name && (
-            <div className="font-display text-lg font-semibold tracking-tight text-[var(--ink)]">
+            <div className="font-display text-xl font-bold tracking-tight text-[var(--ink)]">
               {b.name}
             </div>
           )}
           {b.title && (
-            <div className="text-[var(--accent-strong)] text-sm">{b.title}</div>
+            <div className="text-emerald-400 font-semibold text-sm mt-0.5">{b.title}</div>
           )}
-          <div className="text-xs text-[var(--ink-muted)] mt-1 flex flex-wrap gap-x-3 gap-y-1">
-            {b.email && <span>{b.email}</span>}
-            {b.phone && <span>{b.phone}</span>}
-            {b.location && <span>{b.location}</span>}
-            {(b.links || []).map((l, i) => (
-              <span key={i}>{l.label}</span>
-            ))}
+          <div className="text-xs text-[var(--ink-muted)] mt-1.5 flex flex-wrap gap-x-4 gap-y-1 font-mono">
+            {b.email && <span>📧 {b.email}</span>}
+            {b.phone && <span>📞 {b.phone}</span>}
+            {b.location && <span>📍 {b.location}</span>}
           </div>
         </div>
       )}
 
       {s.summary && (
         <div>
-          <PreviewLabel>Summary</PreviewLabel>
-          <p className="text-[var(--ink)] leading-relaxed">{s.summary}</p>
+          <PreviewLabel>Summary Statement</PreviewLabel>
+          <p className="text-[var(--ink)] text-xs leading-relaxed font-normal">{s.summary}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {s.experience?.length > 0 && (
           <div>
             <PreviewLabel>Experience ({s.experience.length})</PreviewLabel>
-            <ul className="space-y-1.5">
+            <ul className="space-y-2 text-xs">
               {s.experience.slice(0, 5).map((e, i) => (
-                <li key={i}>
-                  <span className="text-[var(--ink)] font-medium">{e.role}</span>
+                <li key={i} className="p-2 rounded-lg bg-white/5 border border-white/5">
+                  <span className="text-[var(--ink)] font-bold">{e.role}</span>
                   {e.company && (
-                    <span className="text-[var(--ink-muted)]"> · {e.company}</span>
+                    <span className="text-emerald-400 font-medium"> @ {e.company}</span>
                   )}
                   {e.period && (
-                    <span className="ml-2 text-[11px] text-[var(--ink-muted)]">
-                      {e.period}
+                    <span className="ml-2 text-[10px] text-[var(--ink-muted)] font-mono">
+                      ({e.period})
                     </span>
                   )}
                 </li>
@@ -351,12 +349,12 @@ function ParsedSectionsPreview({ version }) {
         {s.education?.length > 0 && (
           <div>
             <PreviewLabel>Education ({s.education.length})</PreviewLabel>
-            <ul className="space-y-1.5">
+            <ul className="space-y-2 text-xs">
               {s.education.map((e, i) => (
-                <li key={i}>
-                  <span className="text-[var(--ink)] font-medium">{e.degree}</span>
+                <li key={i} className="p-2 rounded-lg bg-white/5 border border-white/5">
+                  <span className="text-[var(--ink)] font-bold">{e.degree}</span>
                   {e.school && (
-                    <span className="text-[var(--ink-muted)]"> · {e.school}</span>
+                    <span className="text-[var(--ink-muted)]"> • {e.school}</span>
                   )}
                 </li>
               ))}
@@ -370,65 +368,11 @@ function ParsedSectionsPreview({ version }) {
           <PreviewLabel>Skills ({s.skills.length})</PreviewLabel>
           <div className="flex flex-wrap gap-1.5">
             {s.skills.slice(0, 24).map((sk, i) => (
-              <Badge key={i} tone="accent">{sk}</Badge>
+              <Badge key={i} tone="accent" className="text-xs font-mono">{sk}</Badge>
             ))}
           </div>
         </div>
       )}
-
-      {s.projects?.length > 0 && (
-        <div>
-          <PreviewLabel>Projects ({s.projects.length})</PreviewLabel>
-          <ul className="space-y-1.5">
-            {s.projects.slice(0, 5).map((p, i) => (
-              <li key={i}>
-                <span className="text-[var(--ink)] font-medium">{p.name}</span>
-                {p.tech?.length > 0 && (
-                  <span className="ml-2 text-[11px] text-[var(--accent-strong)]">
-                    {p.tech.join(" · ")}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {s.certifications?.length > 0 && (
-          <div>
-            <PreviewLabel>Certifications</PreviewLabel>
-            <ul className="space-y-1 text-xs text-[var(--ink-muted)]">
-              {s.certifications.map((c, i) => (
-                <li key={i}>
-                  <span className="text-[var(--ink)]">{c.name}</span>
-                  {c.year && <span> · {c.year}</span>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {s.languages?.length > 0 && (
-          <div>
-            <PreviewLabel>Languages</PreviewLabel>
-            <div className="flex flex-wrap gap-1">
-              {s.languages.map((l, i) => (
-                <Badge key={i} tone="neutral">{l}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
-        {s.interests?.length > 0 && (
-          <div>
-            <PreviewLabel>Interests</PreviewLabel>
-            <div className="flex flex-wrap gap-1">
-              {s.interests.map((l, i) => (
-                <Badge key={i} tone="neutral">{l}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

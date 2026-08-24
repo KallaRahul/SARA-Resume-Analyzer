@@ -16,7 +16,7 @@ export function TabsList({ children, className }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 bg-[var(--surface-2)] border border-[var(--border)] p-1 rounded-full",
+        "inline-flex items-center gap-1.5 bg-[var(--surface-2)] border border-[var(--border)] p-1.5 rounded-2xl backdrop-blur-md",
         className
       )}
     >
@@ -30,27 +30,36 @@ export function TabsTrigger({ value, children, className }) {
   const active = ctx.value === value;
   return (
     <button
-      onClick={() => ctx.onValueChange(value)}
+      onClick={() => ctx?.onValueChange(value)}
       className={cn(
-        "relative px-3.5 h-8 text-xs font-medium rounded-full transition-colors",
-        active ? "text-[var(--bg)]" : "text-[var(--ink-muted)] hover:text-[var(--ink)]",
+        "relative px-4 h-9 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer select-none",
+        active ? "text-emerald-400 font-bold" : "text-[var(--ink-muted)] hover:text-[var(--ink)]",
         className
       )}
     >
       {active && (
         <motion.span
           layoutId="tab-active"
-          className="absolute inset-0 rounded-full bg-[var(--ink)]"
-          transition={{ type: "spring", duration: 0.4, bounce: 0.18 }}
+          className="absolute inset-0 rounded-xl bg-emerald-500/15 border border-emerald-500/30 shadow-md shadow-emerald-500/10"
+          transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
         />
       )}
-      <span className="relative z-10">{children}</span>
+      <span className="relative z-10 flex items-center gap-1.5">{children}</span>
     </button>
   );
 }
 
 export function TabsContent({ value, children, className }) {
   const ctx = useContext(TabsCtx);
-  if (ctx.value !== value) return null;
-  return <div className={cn("", className)}>{children}</div>;
+  if (ctx?.value !== value) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className={cn("", className)}
+    >
+      {children}
+    </motion.div>
+  );
 }

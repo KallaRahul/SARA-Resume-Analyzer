@@ -8,7 +8,7 @@ import {
   AuthPrimaryButton,
   AuthErrorBanner,
 } from "@/components/auth/AuthShell";
-import AILogo from "@/components/layout/AILogo";
+import { BrandLogo } from "@/components/layout/AILogo";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Register() {
@@ -36,27 +36,25 @@ export default function Register() {
     <AuthShell
       headline={
         <>
-          Your resume,
-          <br />
-          <em style={{ fontStyle: "italic" }}>intelligently sharpened.</em>
+          Turn your resume into a <span className="text-gradient-emerald">recruiter magnet.</span>
         </>
       }
-      subhead="Drop your PDF, get an ATS score, fix what's weak, and land interviews — powered by AI."
+      subhead="Drop your PDF, obtain instant ATS ratings, fix weak bullets, and land top-tier tech interviews."
     >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="mb-12">
-          <AILogo size={48} />
+        <div className="mb-8">
+          <BrandLogo showText={true} size="lg" />
         </div>
 
-        <h1 className="font-display text-[34px] font-semibold tracking-tight text-[var(--ink)] leading-[1.05]">
-          Get started
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-[var(--ink)]">
+          Create Account
         </h1>
-        <p className="text-[var(--ink-muted)] mt-2 text-[15px]">
-          Free to start. No credit card required.
+        <p className="text-[var(--ink-muted)] mt-1.5 text-sm font-medium">
+          Start auditing & rewriting your resume with AI.
         </p>
 
         <form onSubmit={onSubmit} className="mt-9 space-y-4">

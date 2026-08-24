@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardTitle, CardDescription, CardHeader } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -19,18 +19,21 @@ export default function Resumes() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Your Resumes"
-        description="Upload a new one or pick up where you left off."
+        title="Resumes Vault"
+        description="Upload a new resume PDF for instant AI scoring or manage your version history."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5">
-          <Card>
-            <CardHeader>
+          <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl relative overflow-hidden">
+            <CardHeader className="!mb-4">
               <div>
-                <CardTitle className="text-base">Upload a resume</CardTitle>
+                <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
+                  <Sparkles size={18} className="text-emerald-400" />
+                  Upload & Scan PDF
+                </CardTitle>
                 <CardDescription className="mt-1">
-                  PDF only. We extract the text and create version V1.
+                  Upload PDF to parse sections, compute ATS score, and generate AI bullet rewrites.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -38,20 +41,20 @@ export default function Resumes() {
           </Card>
         </div>
 
-        <div className="lg:col-span-7 space-y-3">
+        <div className="lg:col-span-7 space-y-3.5">
           {isLoading && (
             <>
-              <Skeleton className="h-[88px] rounded-2xl" />
-              <Skeleton className="h-[88px] rounded-2xl" />
-              <Skeleton className="h-[88px] rounded-2xl" />
+              <Skeleton className="h-[96px] rounded-2xl" />
+              <Skeleton className="h-[96px] rounded-2xl" />
+              <Skeleton className="h-[96px] rounded-2xl" />
             </>
           )}
 
           {!isLoading && resumes?.length === 0 && (
             <EmptyState
               icon={FileText}
-              title="No resumes yet"
-              description="Drop your first PDF on the left to get started — we'll parse it, score it, and suggest stronger bullets."
+              title="No resumes in vault yet"
+              description="Upload your first resume PDF on the left to get instant ATS scores, keyword matches, and bullet rewrites."
             />
           )}
 

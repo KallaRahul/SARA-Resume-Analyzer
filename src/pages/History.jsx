@@ -5,6 +5,7 @@ import {
   Upload,
   Sparkles,
   PenLine,
+  ChevronRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -15,10 +16,10 @@ import { cn, relativeTime } from "@/lib/utils";
 import { useHistory } from "@/hooks/useAnalytics";
 
 const FILTERS = [
-  { key: "all", label: "All", icon: HistoryIcon },
-  { key: "upload", label: "Uploads", icon: Upload },
-  { key: "analyze", label: "Analyses", icon: Sparkles },
-  { key: "rewrite", label: "Rewrites", icon: PenLine },
+  { key: "all", label: "All Activity", icon: HistoryIcon },
+  { key: "upload", label: "PDF Uploads", icon: Upload },
+  { key: "analyze", label: "AI Scans", icon: Sparkles },
+  { key: "rewrite", label: "Bullet Rewrites", icon: PenLine },
 ];
 
 const ICONS = {
@@ -30,7 +31,7 @@ const ICONS = {
 const TONES = {
   upload: "neutral",
   analyze: "accent",
-  rewrite: "warning",
+  rewrite: "accent",
 };
 
 function dayKey(date) {
@@ -81,7 +82,7 @@ export default function History() {
     return (
       <EmptyState
         icon={HistoryIcon}
-        title="Couldn't load history"
+        title="Couldn't load activity history"
         description={error.message}
       />
     );
@@ -90,11 +91,11 @@ export default function History() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="History"
-        description="Everything you've done across your resumes, in time order."
+        title="Activity Audit Log"
+        description="Chronological log of all uploaded resumes, AI analysis runs, and bullet merges."
       />
 
-      <div className="inline-flex items-center gap-1 bg-[var(--surface)] border border-[var(--border)] p-1 rounded-full shadow-card">
+      <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md flex-wrap">
         {FILTERS.map((f) => {
           const Icon = f.icon;
           const count = totals[f.key] ?? events.length;
@@ -104,20 +105,20 @@ export default function History() {
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                "h-9 px-3.5 text-xs font-medium rounded-full transition-colors inline-flex items-center gap-1.5",
+                "h-9 px-4 text-xs font-bold rounded-xl transition-all inline-flex items-center gap-2",
                 isActive
-                  ? "bg-[var(--ink)] text-[var(--bg)]"
+                  ? "bg-gradient-to-r from-emerald-400 to-teal-400 text-slate-950 shadow-md"
                   : "text-[var(--ink-muted)] hover:text-[var(--ink)]"
               )}
             >
-              <Icon size={13} />
+              <Icon size={14} />
               {f.label}
               <span
                 className={cn(
-                  "tabular text-[10px] px-1.5 py-0.5 rounded-full",
+                  "font-mono text-[10px] px-2 py-0.5 rounded-md font-extrabold",
                   isActive
-                    ? "bg-white/15 text-[var(--bg)]"
-                    : "bg-[var(--surface-2)] text-[var(--ink-muted)]"
+                    ? "bg-slate-950/30 text-slate-950"
+                    : "bg-white/10 text-[var(--ink-muted)]"
                 )}
               >
                 {count}
@@ -130,28 +131,29 @@ export default function History() {
       {grouped.length === 0 ? (
         <EmptyState
           icon={HistoryIcon}
-          title="No activity yet"
+          title="No activity recorded"
           description={
             filter === "all"
-              ? "Once you upload, analyze, or rewrite a resume, events show up here."
-              : "No events match this filter — try a different one."
+              ? "Once you upload a resume or execute an AI scan, events will populate here."
+              : "No events match this activity filter."
           }
         />
       ) : (
-        <div className="space-y-7">
+        <div className="space-y-8">
           {grouped.map(([day, items]) => (
             <div key={day}>
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-xs uppercase tracking-wide font-semibold text-[var(--ink-muted)]">
+              <div className="flex items-center gap-3 mb-3.5">
+                <h3 className="text-xs uppercase tracking-wider font-extrabold text-emerald-400 font-display">
                   {day}
                 </h3>
                 <div className="flex-1 h-px bg-[var(--border)]" />
-                <span className="text-[10px] text-[var(--ink-muted)] tabular">
-                  {items.length}
+                <span className="text-xs font-mono font-bold text-[var(--ink-muted)]">
+                  {items.length} events
                 </span>
               </div>
-              <Card className="!p-0 overflow-hidden">
-                {items.map((e, idx) => {
+
+              <Card className="glass-card !p-0 border border-[var(--glass-border)] shadow-xl overflow-hidden divide-y divide-[var(--border)]">
+                {items.map((e) => {
                   const Icon = ICONS[e.type] || HistoryIcon;
                   return (
                     <button
@@ -159,27 +161,32 @@ export default function History() {
                       onClick={() =>
                         e.resumeId && nav(`/resumes/${e.resumeId}`)
                       }
-                      className={cn(
-                        "w-full text-left flex items-start gap-3 px-5 py-3.5 hover:bg-[var(--surface-2)] transition-colors",
-                        idx > 0 && "border-t border-[var(--border)]"
-                      )}
+                      className="w-full text-left flex items-center justify-between gap-4 px-6 py-4 hover:bg-white/5 transition-colors"
                     >
-                      <div className="h-9 w-9 shrink-0 rounded-xl bg-[var(--surface-2)] flex items-center justify-center text-[var(--ink-muted)]">
-                        <Icon size={15} />
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="h-10 w-10 shrink-0 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
+                          <Icon size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-[var(--ink)] truncate">
+                            {e.title}
+                          </div>
+                          <div className="text-[11px] text-[var(--ink-muted)] mt-0.5 truncate font-medium">
+                            {e.subtitle}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">
-                          {e.title}
+
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="text-right">
+                          <Badge tone={TONES[e.type] || "neutral"} className="font-mono text-[10px] font-bold uppercase">
+                            {e.label}
+                          </Badge>
+                          <div className="text-[10px] text-[var(--ink-muted)] mt-1 font-mono">
+                            {relativeTime(e.at)}
+                          </div>
                         </div>
-                        <div className="text-xs text-[var(--ink-muted)] mt-0.5">
-                          {e.subtitle}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <Badge tone={TONES[e.type] || "neutral"}>{e.label}</Badge>
-                        <div className="text-[10px] text-[var(--ink-muted)] mt-1">
-                          {relativeTime(e.at)}
-                        </div>
+                        <ChevronRight size={16} className="text-emerald-400" />
                       </div>
                     </button>
                   );
