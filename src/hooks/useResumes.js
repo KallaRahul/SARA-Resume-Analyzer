@@ -8,7 +8,7 @@ export const resumeKeys = {
   list: () => [...resumeKeys.all, "list"],
   detail: (id) => [...resumeKeys.all, "detail", id],
   analyses: (id) => [...resumeKeys.all, "analyses", id],
-  versionAnalysis: (id, versionId) => [...resumeKeys.all, "analysis", id, versionId],
+  versionAnalysis: (id, versionId, targetRole = "") => [...resumeKeys.all, "analysis", id, versionId, targetRole.trim().toLowerCase()],
 };
 
 export function useResumesList() {
@@ -34,10 +34,10 @@ export function useFullVersion(id, versionId) {
   });
 }
 
-export function useAnalysisForVersion(id, versionId) {
+export function useAnalysisForVersion(id, versionId, targetRole = "") {
   return useQuery({
-    queryKey: resumeKeys.versionAnalysis(id, versionId),
-    queryFn: () => resumesApi.analysisForVersion(id, versionId).then((d) => d.analysis),
+    queryKey: resumeKeys.versionAnalysis(id, versionId, targetRole),
+    queryFn: () => resumesApi.analysisForVersion(id, versionId, targetRole).then((d) => d.analysis),
     enabled: !!id && !!versionId,
     retry: false,
   });
@@ -59,6 +59,7 @@ export function useUploadResume() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: resumeKeys.list() });
       qc.invalidateQueries({ queryKey: dashboardKey });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.success(
         "Resume uploaded",
         `${data?.resume?.title || "Resume"} · parsed and ready as V1`
@@ -74,14 +75,9 @@ export function useAnalyzeResume(id) {
   return useMutation({
     mutationFn: (body) => resumesApi.analyze(id, body),
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: resumeKeys.detail(id) });
-      qc.invalidateQueries({ queryKey: resumeKeys.analyses(id) });
+      qc.invalidateQueries({ queryKey: resumeKeys.all });
       qc.invalidateQueries({ queryKey: dashboardKey });
-      if (data?.analysis?.versionId) {
-        qc.invalidateQueries({
-          queryKey: resumeKeys.versionAnalysis(id, data.analysis.versionId),
-        });
-      }
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.success(
         "Analysis complete",
         `ATS score ${data?.analysis?.atsScore ?? "—"} / 100`
@@ -100,6 +96,7 @@ export function useApplyRewrites(id) {
       qc.invalidateQueries({ queryKey: resumeKeys.detail(id) });
       qc.invalidateQueries({ queryKey: resumeKeys.list() });
       qc.invalidateQueries({ queryKey: dashboardKey });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.success(
         `${data?.appliedCount || ""} bullet${
           data?.appliedCount === 1 ? "" : "s"
@@ -127,6 +124,7 @@ export function useDeleteResume() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resumeKeys.list() });
       qc.invalidateQueries({ queryKey: dashboardKey });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
       toast.info("Resume deleted");
     },
     onError: (e) => toast.error("Couldn't delete resume", e?.message),

@@ -16,7 +16,6 @@ import { StrengthsList } from "@/components/analysis/StrengthsList";
 import { KeywordChips } from "@/components/analysis/KeywordChips";
 import { BulletRewrites } from "@/components/analysis/BulletRewrites";
 import { VersionSwitcher } from "@/components/resume/VersionSwitcher";
-import { DiffView } from "@/components/resume/DiffView";
 import { relativeTime } from "@/lib/utils";
 import {
   useResume,
@@ -24,6 +23,27 @@ import {
   useAnalyzeResume,
   useApplyRewrites,
 } from "@/hooks/useResumes";
+
+const SUGGESTED_ROLES = [
+  "Software Tester",
+  "Software Developer",
+  "Software Engineer",
+  "Senior Frontend Engineer",
+  "Senior Backend Engineer",
+  "Full-Stack Engineer",
+  "DevOps Engineer",
+  "Data Scientist",
+  "Data Analyst",
+  "Product Manager",
+  "Cloud Solutions Architect",
+  "Mobile App Developer",
+  "Cybersecurity Engineer",
+  "Software Quality Assurance (QA) Lead",
+  "Database Administrator (DBA)",
+  "AI / Machine Learning Engineer",
+  "UI/UX Product Designer",
+  "Embedded Systems Developer"
+];
 
 export default function ResumeDetail() {
   const { id } = useParams();
@@ -34,31 +54,49 @@ export default function ResumeDetail() {
   const versions = data?.versions || [];
 
   const [activeVersionId, setActiveVersionId] = useState(null);
+
+  // Reset active version when resume ID changes
+  useEffect(() => {
+    setActiveVersionId(null);
+  }, [id]);
+
   useEffect(() => {
     if (!activeVersionId && versions.length) {
       setActiveVersionId(resume?.currentVersionId || versions[versions.length - 1]._id);
     }
   }, [versions, resume, activeVersionId]);
 
+  const [targetRole, setTargetRole] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [tab, setTab] = useState("score");
+
   const activeVersion = useMemo(
     () => versions.find((v) => v._id === activeVersionId),
     [versions, activeVersionId]
   );
 
-  const analysisQuery = useAnalysisForVersion(id, activeVersionId);
+  const analysisQuery = useAnalysisForVersion(id, activeVersionId, targetRole);
   const analysis = analysisQuery.data;
 
   const analyze = useAnalyzeResume(id);
   const applyRewrites = useApplyRewrites(id);
-  const [targetRole, setTargetRole] = useState("");
-  const [tab, setTab] = useState("score");
 
-  async function runAnalyze() {
+  const filteredSuggestions = useMemo(() => {
+    const query = targetRole.trim().toLowerCase();
+    if (!query) return SUGGESTED_ROLES;
+    return SUGGESTED_ROLES.filter((role) =>
+      role.toLowerCase().includes(query)
+    );
+  }, [targetRole]);
+
+  async function runAnalyze(roleOverride) {
+    const roleToScan = typeof roleOverride === "string" ? roleOverride : targetRole;
     try {
       await analyze.mutateAsync({
         versionId: activeVersionId,
-        targetRole: targetRole.trim() || undefined,
+        targetRole: roleToScan.trim() || undefined,
       });
+      await analysisQuery.refetch();
     } catch {}
   }
 
@@ -133,7 +171,7 @@ export default function ResumeDetail() {
         }
       />
 
-      <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl relative overflow-hidden">
+      <Card className="glass-card p-6 border border-[var(--glass-border)] shadow-xl relative z-30 overflow-visible">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
           <div className="space-y-2">
             <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
@@ -150,17 +188,48 @@ export default function ResumeDetail() {
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto min-w-[280px] max-w-[560px]">
-            <Input
-              placeholder="Target Role / JD (e.g. Senior Staff Frontend Engineer)"
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-              className="h-11"
-            />
+          <div className="flex items-center gap-3 w-full md:w-auto min-w-[280px] max-w-[560px] relative z-40">
+            <div className="relative flex-1 min-w-0">
+              <Input
+                placeholder="Target Role / JD (e.g. Software Tester, Software Developer)"
+                value={targetRole}
+                onChange={(e) => {
+                  setTargetRole(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="h-11 w-full"
+              />
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-[999] rounded-2xl bg-slate-950/98 border border-emerald-500/40 shadow-2xl backdrop-blur-2xl max-h-60 overflow-y-auto p-1.5 space-y-1">
+                  <div className="px-2.5 py-1 text-[10px] uppercase font-bold tracking-wider text-emerald-400">
+                    Matching Job Role Suggestions
+                  </div>
+                  {filteredSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setTargetRole(suggestion);
+                        setShowSuggestions(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-[var(--ink)] hover:bg-emerald-500/20 hover:text-emerald-300 transition-colors flex items-center justify-between group"
+                    >
+                      <span>{suggestion}</span>
+                      <span className="text-[10px] text-emerald-400 font-mono font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Select →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Button
               variant="accent"
               size="lg"
-              onClick={runAnalyze}
+              onClick={() => runAnalyze()}
               disabled={analyze.isPending || !activeVersionId}
               className="shrink-0 font-bold"
             >
@@ -200,7 +269,7 @@ export default function ResumeDetail() {
 
       {analysis && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
             <div className="lg:col-span-4">
               <AtsGauge score={analysis.atsScore} delta={0} />
             </div>
@@ -233,9 +302,6 @@ export default function ResumeDetail() {
               <TabsTrigger value="strengths">Key Strengths</TabsTrigger>
               <TabsTrigger value="keywords">Keyword Gaps</TabsTrigger>
               <TabsTrigger value="rewrites">Impact Rewrites</TabsTrigger>
-              {versions.length >= 2 && (
-                <TabsTrigger value="diff">Diff Tracker</TabsTrigger>
-              )}
             </TabsList>
 
             <div className="mt-4">
@@ -258,9 +324,6 @@ export default function ResumeDetail() {
                   isApplying={applyRewrites.isPending}
                   error={applyRewrites.error?.message}
                 />
-              </TabsContent>
-              <TabsContent value="diff">
-                <DiffView resumeId={id} versions={versions} />
               </TabsContent>
             </div>
           </Tabs>

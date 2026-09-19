@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2, User, Mail, Lock } from "lucide-react";
@@ -12,7 +12,7 @@ import { BrandLogo } from "@/components/layout/AILogo";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Register() {
-  const { register } = useAuth();
+  const { user, register, logout } = useAuth();
   const nav = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [err, setErr] = useState("");

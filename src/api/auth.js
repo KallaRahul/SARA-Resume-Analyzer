@@ -7,24 +7,28 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // import { apiClient } from "./client";
-import { mockUser, loadMockUser, saveMockUser } from "@/mock/auth";
+import {
+  mockUser,
+  loadMockUser,
+  saveMockUser,
+  registerUserRecord,
+  authenticateUser,
+} from "@/mock/auth";
 import { mockDelay } from "@/mock/_helpers";
 
 export const authApi = {
   // register: (payload) => apiClient.post("/auth/register", payload).then((r) => r.data),
-  register: async ({ name, email }) => {
-    await mockDelay();
-    const u = { ...mockUser, name: name || mockUser.name, email: email || mockUser.email };
-    saveMockUser(u);
-    return { user: u };
+  register: async ({ name, email, password }) => {
+    await mockDelay(600);
+    const user = registerUserRecord({ name, email, password });
+    return { user };
   },
 
   // login: (payload) => apiClient.post("/auth/login", payload).then((r) => r.data),
-  login: async ({ email }) => {
-    await mockDelay();
-    const u = { ...mockUser, email: email || mockUser.email };
-    saveMockUser(u);
-    return { user: u };
+  login: async ({ email, password }) => {
+    await mockDelay(600);
+    const user = authenticateUser({ email, password });
+    return { user };
   },
 
   // logout: () => apiClient.post("/auth/logout").then((r) => r.data),
@@ -36,11 +40,10 @@ export const authApi = {
 
   // me: () => apiClient.get("/auth/me").then((r) => r.data),
   me: async () => {
-    await mockDelay(150);
+    await mockDelay(100);
     const u = loadMockUser();
     if (!u) {
-      // mimic the 401 the real backend would throw → AuthContext shows /login
-      throw { status: 401, message: "Not authenticated" };
+      throw { status: 401, message: "Unauthenticated" };
     }
     return { user: u };
   },
@@ -60,3 +63,4 @@ export const authApi = {
     return { ok: true };
   },
 };
+

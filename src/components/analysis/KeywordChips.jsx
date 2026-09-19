@@ -1,4 +1,4 @@
-import { Check, X, KeyRound, Sparkles } from "lucide-react";
+import { Check, X, KeyRound, Sparkles, Target } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 
 function Chip({ children, tone }) {
@@ -8,6 +8,14 @@ function Chip({ children, tone }) {
         <span className="h-4 w-4 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black">
           <Check size={10} strokeWidth={4} />
         </span>
+        {children}
+      </span>
+    );
+  }
+  if (tone === "required") {
+    return (
+      <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold transition-all hover:scale-105 shadow-sm">
+        <Target size={12} className="text-cyan-400" />
         {children}
       </span>
     );
@@ -24,18 +32,21 @@ function Chip({ children, tone }) {
 
 function SectionHeader({ tone, label, count }) {
   const isPresent = tone === "present";
+  const isRequired = tone === "required";
   return (
     <div className="flex items-center gap-3 mb-3.5">
       <span
         className={
-          isPresent
+          isRequired
+            ? "h-7 w-7 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center"
+            : isPresent
             ? "h-7 w-7 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center"
             : "h-7 w-7 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center"
         }
       >
-        {isPresent ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}
+        {isRequired ? <Target size={14} strokeWidth={2.5} /> : isPresent ? <Check size={14} strokeWidth={3} /> : <X size={14} strokeWidth={3} />}
       </span>
-      <div className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] font-display">{label} Keywords</div>
+      <div className="text-xs font-bold uppercase tracking-wider text-[var(--ink)] font-display">{label}</div>
       <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-xs font-mono font-bold text-emerald-400">
         {count}
       </span>
@@ -45,7 +56,8 @@ function SectionHeader({ tone, label, count }) {
 }
 
 export function KeywordChips({ present = [], missing = [] }) {
-  const total = present.length + missing.length;
+  const allRequired = Array.from(new Set([...present, ...missing]));
+  const total = allRequired.length;
   const pct = total ? Math.round((present.length / total) * 100) : 0;
 
   return (
@@ -54,10 +66,10 @@ export function KeywordChips({ present = [], missing = [] }) {
         <div>
           <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
             <KeyRound size={18} className="text-emerald-400" />
-            ATS Keyword Coverage
+            ATS Keyword Coverage & Role Requirements
           </CardTitle>
           <CardDescription className="mt-1">
-            Exact term match analysis against targeted job descriptions
+            Exact term match analysis against targeted job role description
           </CardDescription>
         </div>
       </CardHeader>
@@ -67,14 +79,14 @@ export function KeywordChips({ present = [], missing = [] }) {
         <div className="relative flex items-center justify-between gap-4">
           <div>
             <div className="text-[10px] uppercase tracking-wider font-extrabold text-[var(--ink-muted)]">
-              ATS Keyword Density
+              ATS Keyword Match Score
             </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="font-display tabular-nums text-4xl font-extrabold text-gradient-emerald">
                 {present.length}
               </span>
               <span className="text-[var(--ink-muted)] text-sm font-semibold">
-                / {total} matched terms
+                / {total} required terms
               </span>
             </div>
           </div>
@@ -99,7 +111,18 @@ export function KeywordChips({ present = [], missing = [] }) {
 
       <div className="space-y-6">
         <div>
-          <SectionHeader tone="present" label="Verified Present" count={present.length} />
+          <SectionHeader tone="required" label="Required Role Keywords" count={allRequired.length} />
+          <div className="flex flex-wrap gap-2">
+            {allRequired.map((k) => (
+              <Chip key={k} tone="required">
+                {k}
+              </Chip>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <SectionHeader tone="present" label="Verified Present in Resume" count={present.length} />
           {present.length ? (
             <div className="flex flex-wrap gap-2">
               {present.map((k) => (
@@ -114,7 +137,7 @@ export function KeywordChips({ present = [], missing = [] }) {
         </div>
 
         <div>
-          <SectionHeader tone="missing" label="Missing & Recommended" count={missing.length} />
+          <SectionHeader tone="missing" label="Missing & Recommended for Role" count={missing.length} />
           {missing.length ? (
             <div className="flex flex-wrap gap-2">
               {missing.map((k) => (
@@ -134,3 +157,4 @@ export function KeywordChips({ present = [], missing = [] }) {
     </Card>
   );
 }
+

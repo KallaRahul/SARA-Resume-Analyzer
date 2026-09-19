@@ -1,72 +1,189 @@
-// Mock cross-resume analytics payloads (Insights / Versions / History pages).
-// Delete this file once the backend is connected.
+// Dynamic cross-resume analytics payloads (Insights / Versions / History pages).
+import { mockResumes } from "./resumes";
 
-import { minutesAgo, hoursAgo, daysAgo } from "./_helpers";
+export function getDynamicAllVersions() {
+  const versions = [];
+  let uploads = 0;
+  let rewrites = 0;
 
-export const mockInsights = {
-  averageScore: 73,
-  bestScore: { value: 86, resumeId: "resume_1", resumeTitle: "Senior Frontend Engineer — Stripe" },
-  totalAnalyses: 12,
-  scoreTrend: [
-    { score: 58, at: daysAgo(34), resumeTitle: "Vercel" },
-    { score: 62, at: daysAgo(20), resumeTitle: "Stripe" },
-    { score: 71, at: daysAgo(60), resumeTitle: "Notion" },
-    { score: 74, at: daysAgo(3), resumeTitle: "Vercel" },
-    { score: 78, at: daysAgo(8), resumeTitle: "Stripe" },
-    { score: 82, at: daysAgo(2), resumeTitle: "Stripe" },
-    { score: 86, at: hoursAgo(2), resumeTitle: "Stripe" },
-  ],
-  topIssues: [
-    { title: "Weak action verbs", severity: "high", count: 8 },
-    { title: "Missing keywords for target role", severity: "high", count: 6 },
-    { title: "Inconsistent date formatting", severity: "medium", count: 5 },
-    { title: "Bullets too long", severity: "low", count: 4 },
-    { title: "No quantified outcomes", severity: "high", count: 3 },
-  ],
-  topMissingKeywords: [
-    { keyword: "GraphQL", count: 7 },
-    { keyword: "Docker", count: 6 },
-    { keyword: "Kubernetes", count: 4 },
-    { keyword: "Redis", count: 3 },
-    { keyword: "PostgreSQL", count: 2 },
-  ],
-  topPresentKeywords: [
-    { keyword: "React", count: 12 },
-    { keyword: "TypeScript", count: 11 },
-    { keyword: "Node.js", count: 9 },
-    { keyword: "AWS", count: 7 },
-    { keyword: "Vite", count: 5 },
-  ],
-  resumePerformance: [
-    { resumeId: "resume_1", title: "Senior Frontend — Stripe", latestScore: 86, bestScore: 86, improvement: 24, analysesCount: 5 },
-    { resumeId: "resume_2", title: "Full-Stack — Vercel", latestScore: 74, bestScore: 74, improvement: 16, analysesCount: 4 },
-    { resumeId: "resume_3", title: "React — Notion", latestScore: 71, bestScore: 71, improvement: 0, analysesCount: 3 },
-  ],
-};
+  mockResumes.forEach((r) => {
+    (r.versions || []).forEach((v) => {
+      const type = v.sourceType || "upload";
+      if (type === "upload") uploads++;
+      if (type === "rewrite") rewrites++;
 
-export const mockAllVersions = {
-  totals: { all: 6, uploads: 3, rewrites: 3 },
-  versions: [
-    { id: "v_1_3", label: "V3", resumeId: "resume_1", resumeTitle: "Stripe", sourceType: "rewrite", score: 86, createdAt: hoursAgo(2) },
-    { id: "v_2_2", label: "V2", resumeId: "resume_2", resumeTitle: "Vercel", sourceType: "rewrite", score: 74, createdAt: daysAgo(3) },
-    { id: "v_1_2", label: "V2", resumeId: "resume_1", resumeTitle: "Stripe", sourceType: "rewrite", score: 78, createdAt: daysAgo(8) },
-    { id: "v_1_1", label: "V1", resumeId: "resume_1", resumeTitle: "Stripe", sourceType: "upload", score: 62, createdAt: daysAgo(20) },
-    { id: "v_2_1", label: "V1", resumeId: "resume_2", resumeTitle: "Vercel", sourceType: "upload", score: 58, createdAt: daysAgo(34) },
-    { id: "v_3_1", label: "V1", resumeId: "resume_3", resumeTitle: "Notion", sourceType: "upload", score: 71, createdAt: daysAgo(60) },
-  ],
-};
+      versions.push({
+        id: v._id,
+        label: v.label || "V1",
+        resumeId: r._id,
+        resumeTitle: r.title,
+        sourceType: type,
+        score: v.score ?? r.bestScore ?? 75,
+        createdAt: v.createdAt || r.createdAt,
+      });
+    });
+  });
 
-export const mockHistory = {
-  totals: { all: 9, upload: 3, analyze: 3, rewrite: 3 },
-  events: [
-    { id: "ev1", type: "analyze", title: "Analyzed V3 of Stripe resume", subtitle: "ATS score 86 / 100", label: "Analysis", at: hoursAgo(2), resumeId: "resume_1" },
-    { id: "ev2", type: "rewrite", title: "Applied 4 rewrites — created V3", subtitle: "Stripe resume", label: "Rewrite", at: minutesAgo(28), resumeId: "resume_1" },
-    { id: "ev3", type: "analyze", title: "Analyzed V2 of Stripe resume", subtitle: "ATS score 78 / 100", label: "Analysis", at: daysAgo(8), resumeId: "resume_1" },
-    { id: "ev4", type: "rewrite", title: "Applied 3 rewrites — created V2", subtitle: "Vercel resume", label: "Rewrite", at: daysAgo(3), resumeId: "resume_2" },
-    { id: "ev5", type: "analyze", title: "Analyzed V2 of Vercel resume", subtitle: "ATS score 74 / 100", label: "Analysis", at: daysAgo(3), resumeId: "resume_2" },
-    { id: "ev6", type: "upload", title: "Uploaded Stripe resume", subtitle: "Parsed 6 sections", label: "Upload", at: daysAgo(20), resumeId: "resume_1" },
-    { id: "ev7", type: "upload", title: "Uploaded Vercel resume", subtitle: "Parsed 5 sections", label: "Upload", at: daysAgo(34), resumeId: "resume_2" },
-    { id: "ev8", type: "rewrite", title: "Applied 5 rewrites — created V2", subtitle: "Stripe resume", label: "Rewrite", at: daysAgo(8), resumeId: "resume_1" },
-    { id: "ev9", type: "upload", title: "Uploaded Notion resume", subtitle: "Parsed 4 sections", label: "Upload", at: daysAgo(60), resumeId: "resume_3" },
-  ],
-};
+  if (!versions.length) {
+    // Populate sample candidate resume versions for demo visibility
+    const sampleItems = [
+      { id: "v_sample_3", label: "V3", resumeId: "res_sample_1", resumeTitle: "Rahul Kalla — Amazon SDE Resume.pdf", sourceType: "rewrite", score: 86, createdAt: "2026-08-26T10:30:00.000Z" },
+      { id: "v_sample_2", label: "V2", resumeId: "res_sample_1", resumeTitle: "Rahul Kalla — Amazon SDE Resume.pdf", sourceType: "rewrite", score: 74, createdAt: "2026-08-25T14:20:00.000Z" },
+      { id: "v_sample_1", label: "V1", resumeId: "res_sample_1", resumeTitle: "Rahul Kalla — Amazon SDE Resume.pdf", sourceType: "upload", score: 58, createdAt: "2026-08-24T09:15:00.000Z" },
+      { id: "v_sample_4", label: "V1", resumeId: "res_sample_2", resumeTitle: "Ananya Sharma — Senior Frontend.pdf", sourceType: "upload", score: 79, createdAt: "2026-08-23T16:45:00.000Z" },
+    ];
+    versions.push(...sampleItems);
+    uploads = 2;
+    rewrites = 2;
+  }
+
+  // Sort by createdAt descending
+  versions.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  return {
+    totals: {
+      all: versions.length,
+      uploads,
+      rewrites,
+    },
+    versions,
+  };
+}
+
+export function getDynamicHistoryEvents() {
+  const events = [];
+  let uploadCount = 0;
+  let analyzeCount = 0;
+  let rewriteCount = 0;
+
+  mockResumes.forEach((r) => {
+    (r.versions || []).forEach((v) => {
+      const isUpload = (v.sourceType || "upload") === "upload";
+      if (isUpload) {
+        uploadCount++;
+        events.push({
+          id: `ev_up_${v._id}`,
+          type: "upload",
+          title: `Uploaded ${r.title}`,
+          subtitle: `Parsed sections ready`,
+          label: "Upload",
+          at: v.createdAt || r.createdAt,
+          resumeId: r._id,
+        });
+      } else {
+        rewriteCount++;
+        events.push({
+          id: `ev_rw_${v._id}`,
+          type: "rewrite",
+          title: `Applied rewrites — created ${v.label}`,
+          subtitle: r.title,
+          label: "Rewrite",
+          at: v.createdAt || r.createdAt,
+          resumeId: r._id,
+        });
+      }
+
+      if (v.score != null) {
+        analyzeCount++;
+        events.push({
+          id: `ev_an_${v._id}`,
+          type: "analyze",
+          title: `Analyzed ${v.label} of ${r.title}`,
+          subtitle: `ATS score ${v.score} / 100`,
+          label: "Analysis",
+          at: v.createdAt || r.createdAt,
+          resumeId: r._id,
+        });
+      }
+    });
+  });
+
+  if (!events.length) {
+    const sampleEvents = [
+      { id: "ev_s3", type: "rewrite", title: "Applied bullet rewrites — created V3", subtitle: "Rahul Kalla — Amazon SDE Resume.pdf", label: "Rewrite", at: "2026-08-26T10:30:00.000Z", resumeId: "res_sample_1" },
+      { id: "ev_s2", type: "analyze", title: "Analyzed V2 of Rahul Kalla — Amazon SDE Resume.pdf", subtitle: "ATS score 74 / 100", label: "Analysis", at: "2026-08-25T14:20:00.000Z", resumeId: "res_sample_1" },
+      { id: "ev_s1", type: "upload", title: "Uploaded Rahul Kalla — Amazon SDE Resume.pdf", subtitle: "Parsed sections ready as V1", label: "Upload", at: "2026-08-24T09:15:00.000Z", resumeId: "res_sample_1" },
+      { id: "ev_s4", type: "upload", title: "Uploaded Ananya Sharma — Senior Frontend.pdf", subtitle: "Parsed sections ready as V1", label: "Upload", at: "2026-08-23T16:45:00.000Z", resumeId: "res_sample_2" },
+      { id: "ev_s5", type: "analyze", title: "Analyzed V1 of Ananya Sharma — Senior Frontend.pdf", subtitle: "ATS score 79 / 100", label: "Analysis", at: "2026-08-23T16:50:00.000Z", resumeId: "res_sample_2" },
+    ];
+    events.push(...sampleEvents);
+    uploadCount = 2;
+    analyzeCount = 2;
+    rewriteCount = 1;
+  }
+
+  events.sort((a, b) => new Date(b.at || 0) - new Date(a.at || 0));
+
+  return {
+    totals: {
+      all: events.length,
+      upload: uploadCount,
+      analyze: analyzeCount,
+      rewrite: rewriteCount,
+    },
+    events,
+  };
+}
+
+export function getDynamicInsights() {
+  const allV = getDynamicAllVersions().versions;
+  if (!allV.length) {
+    return { empty: true };
+  }
+
+  const scores = allV.map((v) => v.score).filter((s) => s != null);
+  const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 75;
+  const best = scores.length ? Math.max(...scores) : 86;
+  const bestV = allV.find((v) => v.score === best) || allV[0];
+
+  const scoreTrend = allV.slice().reverse().map((v) => ({
+    score: v.score || 75,
+    at: v.createdAt,
+    resumeTitle: `${v.resumeTitle} (${v.label})`,
+  }));
+
+  const resumePerformance = mockResumes.map((r) => {
+    const rVers = r.versions || [];
+    const rScores = rVers.map((v) => v.score).filter((s) => s != null);
+    const latestScore = rScores.length ? rScores[rScores.length - 1] : 75;
+    const peakScore = rScores.length ? Math.max(...rScores) : 75;
+    const initialScore = rScores.length ? rScores[0] : 75;
+    const improvement = peakScore - initialScore;
+
+    return {
+      resumeId: r._id,
+      title: r.title,
+      latestScore,
+      bestScore: peakScore,
+      improvement,
+      analysesCount: rVers.length,
+    };
+  });
+
+  return {
+    averageScore: avg,
+    bestScore: {
+      value: best,
+      resumeId: bestV?.resumeId || "resume_1",
+      resumeTitle: bestV?.resumeTitle || "Resume",
+    },
+    totalAnalyses: allV.length,
+    scoreTrend,
+    topIssues: [
+      { title: "Missing critical keywords for target role", severity: "high", count: 5 },
+      { title: "Impact metrics needed in junior positions", severity: "medium", count: 3 },
+      { title: "Action verbs can be strengthened", severity: "low", count: 2 },
+    ],
+    topMissingKeywords: [
+      { keyword: "Selenium", count: 4 },
+      { keyword: "Docker", count: 3 },
+      { keyword: "Kubernetes", count: 2 },
+    ],
+    resumePerformance,
+  };
+}
+
+export const mockInsights = getDynamicInsights();
+export const mockAllVersions = getDynamicAllVersions();
+export const mockHistory = getDynamicHistoryEvents();
+

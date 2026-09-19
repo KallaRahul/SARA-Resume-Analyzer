@@ -100,6 +100,7 @@ export default function Export() {
             />
             {version && (
               <PDFDownloadLink
+                key={`dl_${activeVersionId}_${version?.score}`}
                 document={<ResumeDocument {...docProps} />}
                 fileName={fileName}
               >
@@ -144,6 +145,7 @@ export default function Export() {
       {version && (
         <Card padding="none" className="glass-card border border-[var(--glass-border)] shadow-2xl overflow-hidden rounded-3xl">
           <PDFViewer
+            key={`pv_${activeVersionId}_${version?.score}`}
             style={{
               width: "100%",
               height: "min(85vh, 1000px)",

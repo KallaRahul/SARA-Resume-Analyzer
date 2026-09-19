@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
-import { ArrowRight, Loader2, Sparkles, Wand2, Info } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { ArrowRight, Loader2, Sparkles, Wand2, Info, Copy, Check } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { useToast } from "@/context/UIContext";
 import { cn } from "@/lib/utils";
 
 function GradientNumber({ value, size = 32 }) {
@@ -16,9 +17,16 @@ function GradientNumber({ value, size = 32 }) {
   );
 }
 
-export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
+export function BulletRewrites({ rewrites = [], onApply, isApplying, error }) {
+  const toast = useToast();
   const ids = useMemo(() => rewrites.map((r) => r._id).filter(Boolean), [rewrites]);
   const [selected, setSelected] = useState(() => new Set(ids));
+  const [copiedId, setCopiedId] = useState(null);
+
+  // Keep selection synchronized when rewrites change
+  useEffect(() => {
+    setSelected(new Set(ids));
+  }, [ids]);
 
   const allSelected = selected.size === ids.length && ids.length > 0;
   const someSelected = selected.size > 0;
@@ -41,7 +49,16 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
   }
 
   function applyAll() {
-    onApply?.([]);
+    onApply?.(ids);
+  }
+
+  function handleCopy(id, text) {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      toast?.success("Copied to clipboard", "Impact bullet rewrite copied");
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   }
 
   if (!rewrites?.length) {
@@ -142,8 +159,9 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
           return (
             <div
               key={id}
+              onClick={() => toggle(id)}
               className={cn(
-                "group relative rounded-2xl border p-5 transition-all duration-200",
+                "group relative rounded-2xl border p-5 transition-all duration-200 cursor-pointer select-none",
                 isSelected
                   ? "border-emerald-500/50 bg-emerald-500/10 shadow-lg"
                   : "border-[var(--glass-border)] bg-slate-900/40 hover:bg-slate-900/60"
@@ -158,7 +176,7 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
                     </span>
                   )}
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div className="flex items-center gap-2">
                   <span
                     className={cn(
                       "text-xs font-bold transition-colors",
@@ -168,7 +186,7 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
                     {isSelected ? "Selected for merge" : "Skip"}
                   </span>
                   <Checkbox checked={isSelected} onChange={() => toggle(id)} />
-                </label>
+                </div>
               </div>
 
               {/* Before vs After Grid */}
@@ -192,11 +210,25 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
                 </div>
 
                 <div className="relative rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Sparkles size={12} className="text-emerald-400" />
-                    <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-400">
-                      AI Impact Bullet Rewrite
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles size={12} className="text-emerald-400" />
+                      <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-400">
+                        AI Impact Bullet Rewrite
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopy(id, r.rewritten);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 text-[10px] font-bold flex items-center gap-1 transition-colors"
+                      title="Copy bullet to clipboard"
+                    >
+                      {copiedId === id ? <Check size={11} /> : <Copy size={11} />}
+                      {copiedId === id ? "Copied!" : "Copy"}
+                    </button>
                   </div>
                   <div className="text-xs text-[var(--ink)] leading-relaxed font-semibold">
                     {r.rewritten}
@@ -231,3 +263,4 @@ export function BulletRewrites({ rewrites, onApply, isApplying, error }) {
     </Card>
   );
 }
+

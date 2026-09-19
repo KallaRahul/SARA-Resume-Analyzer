@@ -12,6 +12,10 @@ import {
   mockAnalyses,
   findMockResume,
   listMockResumesShallow,
+  addMockResume,
+  getOrCreateAnalysis,
+  generateRoleAnalysis,
+  saveVaultToStorage,
 } from "@/mock/resumes";
 import { mockDelay } from "@/mock/_helpers";
 
@@ -49,21 +53,11 @@ export const resumesApi = {
     return { version };
   },
 
-  // upload: (file, title) => {
-  //   const fd = new FormData();
-  //   fd.append("file", file);
-  //   if (title) fd.append("title", title);
-  //   return apiClient
-  //     .post("/resumes", fd, { headers: { "Content-Type": "multipart/form-data" } })
-  //     .then((r) => r.data);
-  // },
+  // upload: (file, title) => { ... },
   upload: async (file, title) => {
     await mockDelay(800);
-    // Returns the most-recent mock resume so the UI navigates to a real detail page.
-    const resume = mockResumes[0];
-    return {
-      resume: { ...resume, title: title || file?.name || resume.title },
-    };
+    const resume = addMockResume(file, title);
+    return { resume };
   },
 
   // remove: (id) => apiClient.delete(`/resumes/${id}`).then((r) => r.data),
@@ -74,10 +68,22 @@ export const resumesApi = {
 
   // analyze: (id, body = {}) =>
   //   apiClient.post(`/resumes/${id}/analyze`, body).then((r) => r.data),
-  analyze: async (_id, { versionId } = {}) => {
-    await mockDelay(1200);
-    const analysis =
-      mockAnalyses[versionId] || mockAnalyses[Object.keys(mockAnalyses)[0]];
+  analyze: async (id, { versionId, targetRole } = {}) => {
+    await mockDelay(700);
+    const resume = findMockResume(id);
+    const version = resume?.versions.find((v) => v._id === versionId) || resume?.versions[resume?.versions.length - 1];
+    const roleKey = targetRole?.trim() || resume?.title || "Software Developer";
+    const analysis = generateRoleAnalysis(version, roleKey);
+
+    if (version) {
+      const cacheKey = `${version._id}_${roleKey.toLowerCase()}`;
+      mockAnalyses[cacheKey] = analysis;
+      mockAnalyses[version._id] = analysis;
+      version.score = analysis.atsScore;
+      version.targetRole = roleKey;
+      if (resume) resume.bestScore = Math.max(resume.bestScore || 0, analysis.atsScore);
+    }
+    saveVaultToStorage();
     return { analysis };
   },
 
@@ -86,16 +92,26 @@ export const resumesApi = {
     await mockDelay();
     const resume = findMockResume(id);
     const analyses = (resume?.versions || [])
-      .map((v) => mockAnalyses[v._id])
+      .map((v) => mockAnalyses[v._id] || getOrCreateAnalysis(v))
       .filter(Boolean);
     return { analyses };
   },
 
-  // analysisForVersion: (id, versionId) =>
+  // analysisForVersion: (id, versionId, targetRole) =>
   //   apiClient.get(`/resumes/${id}/versions/${versionId}/analysis`).then((r) => r.data),
-  analysisForVersion: async (_id, versionId) => {
-    await mockDelay();
-    const analysis = mockAnalyses[versionId];
+  analysisForVersion: async (id, versionId, targetRole = "") => {
+    await mockDelay(150);
+    const resume = findMockResume(id);
+    const version = resume?.versions.find((v) => v._id === versionId);
+    const roleKey = targetRole?.trim() || version?.targetRole || resume?.title || "";
+    const cacheKey = `${versionId}_${roleKey.toLowerCase()}`;
+    let analysis = mockAnalyses[cacheKey];
+    if (!analysis && version) {
+      analysis = generateRoleAnalysis(version, roleKey);
+      mockAnalyses[cacheKey] = analysis;
+      mockAnalyses[versionId] = analysis;
+      saveVaultToStorage();
+    }
     if (!analysis) throw { status: 404, message: "No analysis for this version" };
     return { analysis };
   },
@@ -103,28 +119,85 @@ export const resumesApi = {
   // rewrite: (id, body) =>
   //   apiClient.post(`/resumes/${id}/rewrite`, body).then((r) => r.data),
   rewrite: async (id, { rewriteIds = [] } = {}) => {
-    await mockDelay(900);
+    await mockDelay(800);
     const resume = findMockResume(id);
-    // Return the latest version as if it was the newly created one.
-    const latest = resume?.versions[resume.versions.length - 1];
-    return {
-      version: latest,
-      appliedCount: rewriteIds.length || 4,
-    };
-  },
+    if (!resume) throw { status: 404, message: "Resume not found" };
 
-  // diff: (id, from, to, mode = "words") =>
-  //   apiClient.get(`/resumes/${id}/diff`, { params: { from, to, mode } }).then((r) => r.data),
-  diff: async () => {
-    await mockDelay();
+    const currentVersion = resume.versions[resume.versions.length - 1];
+    const prevAnalysis = mockAnalyses[currentVersion._id] || getOrCreateAnalysis(currentVersion);
+    const missingKeywords = prevAnalysis?.keywordsMissing || ["Selenium", "Test Automation", "Docker", "CI/CD"];
+
+    const currentScore = currentVersion?.score || 55;
+    const boost = Math.round(14 + (rewriteIds.length || 3) * 2);
+    const newScore = Math.min(88, currentScore + boost);
+
+    const newVersionNumber = resume.versions.length + 1;
+    const newVersionId = `v_${resume._id}_${newVersionNumber}`;
+
+    const currentSections = currentVersion?.parsedSections || {};
+    const updatedSections = JSON.parse(JSON.stringify(currentSections));
+
+    // Merge missing keywords into skills array
+    const existingSkills = updatedSections.skills || [];
+    updatedSections.skills = Array.from(new Set([...existingSkills, ...missingKeywords.slice(0, 4)]));
+
+    // Update summary statement with targeted role keyword optimization
+    updatedSections.summary = `Accomplished professional with 5+ years experience building scalable applications. Proven track record optimizing ${missingKeywords.slice(0, 3).join(", ")} deliverables.`;
+
+    if (updatedSections.experience?.length) {
+      const rewrites = prevAnalysis?.bulletRewrites || [];
+      const newBullets = rewrites.length
+        ? rewrites.map((r) => r.rewritten)
+        : [
+            `Engineered production features adopted by 12k+ daily users using ${missingKeywords.slice(0, 2).join(" & ")}; cut latency 38%.`,
+            `Led core systems migration using ${missingKeywords.slice(2, 4).join(" & ")}, reducing build and deployment cycles by 45%.`,
+            "Owned team architecture standards (reusable modules, WCAG AA accessibility pass)."
+          ];
+      updatedSections.experience[0].bullets = newBullets;
+    }
+
+    const newVersion = {
+      _id: newVersionId,
+      label: `V${newVersionNumber}`,
+      score: newScore,
+      sourceType: "rewrite",
+      createdAt: new Date().toISOString(),
+      rawText: currentVersion?.rawText || "—",
+      parsedSections: updatedSections
+    };
+
+    resume.versions.push(newVersion);
+    resume.currentVersionId = newVersionId;
+    resume.versionCount = resume.versions.length;
+    resume.bestScore = Math.max(resume.bestScore || 0, newScore);
+
+    const prevBk = prevAnalysis?.scoreBreakdown || { keywords: 12, formatting: 16, impact: 12, clarity: 14 };
+    const newAnalysis = generateRoleAnalysis(newVersion, resume.title);
+    newAnalysis.atsScore = newScore;
+    newAnalysis.scoreBreakdown = {
+      keywords: Math.min(23, prevBk.keywords + 6),
+      formatting: Math.min(23, prevBk.formatting + 3),
+      impact: Math.min(23, prevBk.impact + 6),
+      clarity: Math.min(23, prevBk.clarity + 4)
+    };
+    newAnalysis.keywordsPresent = Array.from(new Set([...(prevAnalysis?.keywordsPresent || []), ...missingKeywords.slice(0, 4)]));
+    newAnalysis.keywordsMissing = missingKeywords.slice(4);
+    newAnalysis.summary = `Greatly improved match for ${resume.title} (${newScore}% ATS score)! Merged key role terms (${missingKeywords.slice(0, 3).join(", ")}) and high-impact metric rewrites into experience section.`;
+    newAnalysis.issues = [
+      {
+        title: "Primary bullet impact issues resolved",
+        severity: "low",
+        fix: "Experience section metrics and core action verbs match targeted role standards."
+      }
+    ];
+    mockAnalyses[newVersionId] = newAnalysis;
+
+    saveVaultToStorage();
+
     return {
-      hunks: [
-        { type: "remove", text: "Worked on dashboards for the analytics team." },
-        { type: "add", text: "Shipped 4 React analytics dashboards adopted by 12k+ daily users — cut load time 38%." },
-        { type: "context", text: "Led migration from Webpack to Vite — build times down from 92s to 11s." },
-        { type: "remove", text: "Helped migrate the build system." },
-        { type: "add", text: "Owned design-system rewrite (40+ components, full WCAG AA pass)." },
-      ],
+      version: newVersion,
+      appliedCount: rewriteIds.length || 3,
     };
   },
 };
+

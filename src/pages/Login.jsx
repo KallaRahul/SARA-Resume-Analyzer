@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader2, Mail, Lock } from "lucide-react";
+import { ArrowRight, Loader2, Mail, Lock, LogOut } from "lucide-react";
 import {
   AuthShell,
   AuthField,
@@ -12,9 +12,9 @@ import { BrandLogo } from "@/components/layout/AILogo";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { user, login, logout } = useAuth();
   const nav = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: user?.email || "", password: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +57,22 @@ export default function Login() {
           Sign in to access your resumes vault & AI tools.
         </p>
 
-        <form onSubmit={onSubmit} className="mt-9 space-y-4">
+        {user && (
+          <div className="mt-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+            <span className="text-emerald-300 font-medium truncate">
+              Signed in as <strong>{user.name}</strong> ({user.email})
+            </span>
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-bold hover:bg-rose-500/30 flex items-center gap-1 shrink-0 ml-2"
+            >
+              <LogOut size={12} /> Switch
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="mt-7 space-y-4">
           <AuthField
             label="Email"
             type="email"
@@ -76,14 +91,6 @@ export default function Login() {
             onChange={(v) => setForm({ ...form, password: v })}
             placeholder="••••••••"
             icon={Lock}
-            extra={
-              <button
-                type="button"
-                className="text-xs text-[var(--accent-strong)] font-semibold hover:underline"
-              >
-                Forgot?
-              </button>
-            }
           />
 
           <AuthErrorBanner>{err}</AuthErrorBanner>
